@@ -49,6 +49,11 @@ gsxi_add_qt_test(gsxi-removal-script-tests removal-script
         src/infrastructure/install/RemovalScript.cpp
         src/infrastructure/install/RemovalScript.h)
 
+gsxi_add_qt_test(gsxi-self-update-script-tests self-update-script
+        tests/tst_self_update_script.cpp
+        src/infrastructure/install/SelfUpdateScript.cpp
+        src/infrastructure/install/SelfUpdateScript.h)
+
 gsxi_add_qt_test(gsxi-dir-copy-tests dir-copy
         tests/tst_dir_copy.cpp
         src/infrastructure/install/DirCopy.cpp

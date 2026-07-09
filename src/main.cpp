@@ -57,8 +57,6 @@ int main(int argc, char* argv[])
 
     const QGuiApplication app(argc, argv);
 
-    QFile::remove(QCoreApplication::applicationFilePath() + QStringLiteral(".old"));
-
     QGuiApplication::setOrganizationName(QStringLiteral("brunofgmag"));
     QGuiApplication::setApplicationName(QStringLiteral("gsx-integrator-installer"));
     QGuiApplication::setApplicationDisplayName(QStringLiteral("GSX Integrator Installer"));
