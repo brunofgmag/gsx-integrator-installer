@@ -155,9 +155,14 @@ bool WindowsInstallerGateway::IsProcessRunning(const QString& processName) const
 
 bool WindowsInstallerGateway::IsInstallerInsideInstallDir() const
 {
-    const QString selfPath = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
+    const QString selfDir = QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
 
-    return selfPath.startsWith(ClientInstallDir(), Qt::CaseInsensitive);
+    if (selfDir.startsWith(MaintenanceDir(), Qt::CaseInsensitive))
+    {
+        return false;
+    }
+
+    return selfDir.startsWith(ClientInstallDir(), Qt::CaseInsensitive);
 }
 
 bool WindowsInstallerGateway::ClientExeExists() const
@@ -211,7 +216,7 @@ bool WindowsInstallerGateway::PrepareCleanInstallDir()
     const QString installDir = ClientInstallDir();
     (void)QDir().mkpath(QFileInfo(installDir).absolutePath());
 
-    return !QDir(installDir).exists() || QDir(installDir).removeRecursively();
+    return RemoveDirContentsExcept(installDir, QFileInfo(MaintenanceDir()).fileName());
 }
 
 InstallOutcome WindowsInstallerGateway::ExtractClientPackage(const QString& zipPath)
@@ -234,6 +239,13 @@ InstallOutcome WindowsInstallerGateway::ExtractCommbusPackage(const QString& zip
 void WindowsInstallerGateway::InstallUninstallerCopy()
 {
     const QString maintenanceDir = MaintenanceDir();
+    const QString selfDir = QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
+
+    if (selfDir.startsWith(maintenanceDir, Qt::CaseInsensitive))
+    {
+        return;
+    }
+
     QDir(maintenanceDir).removeRecursively();
     CopyDirRecursively(QCoreApplication::applicationDirPath(), maintenanceDir);
 }
