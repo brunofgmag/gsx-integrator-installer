@@ -64,11 +64,11 @@ try
             {
                 if ($d.SideIndicator -eq '=>')
                 {
-                    $problems += "    [MISSING from .ts — string in code, not extracted] $($d.InputObject)"
+                    $problems += "    [MISSING from .ts - string in code, not extracted] $($d.InputObject)"
                 }
                 else
                 {
-                    $problems += "    [STALE in .ts — removed from code] $($d.InputObject)"
+                    $problems += "    [STALE in .ts - removed from code] $($d.InputObject)"
                 }
             }
         }

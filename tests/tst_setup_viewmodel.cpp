@@ -2,6 +2,7 @@
 #include <QtTest/QSignalSpy>
 
 #include <QtCore/QStringList>
+#include <QtCore/QTranslator>
 #include <QtCore/QVariant>
 
 #include "doubles/FakeInstallService.h"
@@ -36,6 +37,18 @@ namespace
     {
         return {id, id, community, process, exeXml, generation};
     }
+
+    class StubTranslator final : public QTranslator
+    {
+    public:
+        QString translate(const char*, const char* sourceText, const char* = nullptr,
+                          int = -1) const override
+        {
+            return QStringLiteral("[xx] ") + QString::fromUtf8(sourceText);
+        }
+
+        [[nodiscard]] bool isEmpty() const override { return false; }
+    };
 }
 
 class SetupViewModelTest final : public QObject
@@ -56,6 +69,7 @@ private slots:
     static void uninstallRunsAndEntersUninstalledState();
     static void uninstallBlockedWhileClientIsRunning();
     static void setLanguagePersistsAndSignals();
+    static void errorTextRetranslatesWhenLanguageChanges();
     static void installerUpdateAvailableWhenNewerReleaseExists();
     static void invalidInstallerReleaseStaysReadyWithoutError();
     static void selfUpdateStartsOnceWhileUpdating();
@@ -412,6 +426,34 @@ void SetupViewModelTest::setLanguagePersistsAndSignals()
     QCOMPARE(spy.count(), 1);
     QCOMPARE(settings.settings.language, QStringLiteral("pt_BR"));
     QCOMPARE(vm.GetLanguage(), QStringLiteral("pt_BR"));
+}
+
+void SetupViewModelTest::errorTextRetranslatesWhenLanguageChanges()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    InstallOutcome outcome;
+    outcome.status = InstallStatus::InstallerInsideInstallDir;
+    vm.OnInstallFinished(outcome);
+
+    const QString before = vm.GetErrorText();
+
+    QVERIFY(!before.isEmpty());
+    QVERIFY(!before.startsWith(QStringLiteral("[xx] ")));
+
+    StubTranslator stub;
+
+    QVERIFY(QCoreApplication::installTranslator(&stub));
+
+    const QString after = vm.GetErrorText();
+    QCoreApplication::removeTranslator(&stub);
+
+    QVERIFY(after.startsWith(QStringLiteral("[xx] ")));
 }
 
 void SetupViewModelTest::installerUpdateAvailableWhenNewerReleaseExists()
