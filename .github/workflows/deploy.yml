@@ -106,7 +106,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup environment
-        uses: ./.github/actions/setup-build-env
+        uses: brunofgmag/gsx-integrator-ci/.github/actions/setup-build-env@main
 
       - name: Build
         shell: pwsh

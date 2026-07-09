@@ -17,20 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  full-validation:
-    name: Build
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      !startsWith(github.event.pull_request.head.ref, 'release-please--')
-    runs-on: windows-2022
-    timeout-minutes: 60
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-
-      - name: Setup environment
-        uses: ./.github/actions/setup-build-env
-
-      - name: Build
-        shell: pwsh
-        run: ./build.ps1 -Config Release -RunTests
+  validate:
+    uses: brunofgmag/gsx-integrator-ci/.github/workflows/merge-validator.yml@main
+    with:
+      allow-forks: true
+    secrets: inherit
