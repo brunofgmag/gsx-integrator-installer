@@ -2,7 +2,23 @@
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
-#include <QtCore/QTextStream>
+
+namespace
+{
+    constexpr auto kScript = R"(@echo off
+chcp 65001 >nul
+cd /d "%TEMP%"
+set tries=0
+:retry
+ping -n 2 127.0.0.1 >nul
+rmdir /s /q "@DIR@"
+if not exist "@DIR@" goto done
+set /a tries+=1
+if %tries% lss 300 goto retry
+:done
+del "%~f0"
+)";
+}
 
 bool WriteRemovalScript(const QString& scriptPath, const QString& dirToRemove)
 {
@@ -13,21 +29,10 @@ bool WriteRemovalScript(const QString& scriptPath, const QString& dirToRemove)
         return false;
     }
 
-    const QString dir = QDir::toNativeSeparators(dirToRemove);
-    QTextStream out(&script);
-    out.setEncoding(QStringConverter::Utf8);
-    out << "@echo off\r\n";
-    out << "chcp 65001 >nul\r\n";
-    out << "cd /d \"%TEMP%\"\r\n";
-    out << "set tries=0\r\n";
-    out << ":retry\r\n";
-    out << "ping -n 2 127.0.0.1 >nul\r\n";
-    out << "rmdir /s /q \"" << dir << "\"\r\n";
-    out << "if not exist \"" << dir << "\" goto done\r\n";
-    out << "set /a tries+=1\r\n";
-    out << "if %tries% lss 300 goto retry\r\n";
-    out << ":done\r\n";
-    out << "del \"%~f0\"\r\n";
+    QString content = QLatin1String(kScript);
+    content.replace(QLatin1String("@DIR@"), QDir::toNativeSeparators(dirToRemove));
+    content.remove(u'\r');
+    content.replace(u'\n', QLatin1String("\r\n"));
 
-    return true;
+    return script.write(content.toUtf8()) != -1;
 }

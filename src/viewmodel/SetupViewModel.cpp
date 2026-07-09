@@ -578,10 +578,12 @@ QString SetupViewModel::SelfUpdateErrorText(const SelfUpdateError kind, const QS
         return detail;
     case SelfUpdateError::ChecksumMismatch:
         return tr("Checksum mismatch for %1. Download corrupted?").arg(detail);
+    case SelfUpdateError::ExtractFailed:
+        return tr("Could not unpack the installer update.");
     case SelfUpdateError::SwapFailed:
-        return tr("Could not replace the installer executable.");
+        return tr("Could not prepare the installer update.");
     case SelfUpdateError::RelaunchFailed:
-        return tr("The update was installed, but the installer could not restart. Open it again manually.");
+        return tr("Could not start the updater. Try again.");
     }
 
     return {};

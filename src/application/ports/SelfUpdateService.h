@@ -7,6 +7,7 @@ enum class SelfUpdateError
 {
     DownloadFailed,
     ChecksumMismatch,
+    ExtractFailed,
     SwapFailed,
     RelaunchFailed,
 };

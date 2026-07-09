@@ -1,15 +1,20 @@
 #include "WindowsSelfUpdateService.h"
 
 #include <QtCore/QCoreApplication>
+#include <QtCore/QDir>
 #include <QtCore/QFile>
-#include <QtCore/QFileInfo>
 #include <QtCore/QProcess>
 #include <QtCore/QRegularExpression>
+#include <QtCore/QStandardPaths>
 
 #include "../github/GithubDownloader.h"
+#include "../system/InstallLocations.h"
+#include "SelfUpdateScript.h"
 
 namespace
 {
+    constexpr auto kPayloadDirName = "gsx-integrator-installer";
+
     QString ReadExpectedSha(const QString& shaFilePath)
     {
         QFile file(shaFilePath);
@@ -24,13 +29,28 @@ namespace
 
         return content.section(whitespace, 0, 0).toLower();
     }
+
+    QString TarExecutable()
+    {
+        QString tar = QStandardPaths::findExecutable(QStringLiteral("tar"));
+        if (tar.isEmpty())
+        {
+            tar = QStringLiteral("C:/Windows/System32/tar.exe");
+        }
+
+        return tar;
+    }
 }
 
 void SelfUpdateWorker::Run(const ReleaseInfo& release)
 {
-    const QString newPath = QCoreApplication::applicationFilePath() + QStringLiteral(".new");
+    const QString stagingDir = QDir::tempPath() + QStringLiteral("/gsx-integrator-self-update");
+    QDir(stagingDir).removeRecursively();
+    (void)QDir().mkpath(stagingDir);
 
-    const QString downloadError = DownloadFile(release.zipUrl, newPath,
+    const QString zipPath = stagingDir + u'/' + release.zipName;
+
+    const QString downloadError = DownloadFile(release.zipUrl, zipPath,
                                                [this](const qint64 received, const qint64 total)
                                                {
                                                    emit progress(total > 0
@@ -44,7 +64,7 @@ void SelfUpdateWorker::Run(const ReleaseInfo& release)
         return;
     }
 
-    const QString shaPath = newPath + QStringLiteral(".sha256");
+    const QString shaPath = zipPath + QStringLiteral(".sha256");
     const QString shaError = DownloadFile(release.shaUrl, shaPath);
     if (!shaError.isEmpty())
     {
@@ -54,16 +74,36 @@ void SelfUpdateWorker::Run(const ReleaseInfo& release)
 
     const QString expected = ReadExpectedSha(shaPath);
 
-    QFile::remove(shaPath);
-
-    if (expected.isEmpty() || Sha256File(newPath) != expected)
+    if (expected.isEmpty() || Sha256File(zipPath) != expected)
     {
-        QFile::remove(newPath);
+        QDir(stagingDir).removeRecursively();
         emit failed(SelfUpdateError::ChecksumMismatch, release.zipName);
         return;
     }
 
-    emit staged();
+    QProcess tar;
+    tar.start(TarExecutable(),
+              {
+                  QStringLiteral("-xf"), QDir::toNativeSeparators(zipPath),
+                  QStringLiteral("-C"), QDir::toNativeSeparators(stagingDir)
+              });
+
+    const bool extracted = tar.waitForStarted(5000)
+        && (tar.waitForFinished(-1), tar.exitStatus() == QProcess::NormalExit && tar.exitCode() == 0);
+
+    QFile::remove(zipPath);
+
+    const QString payloadDir = stagingDir + u'/' + QLatin1String(kPayloadDirName);
+
+    if (!extracted || !QFile::exists(payloadDir + u'/' + QLatin1String(kInstallerExeName)))
+    {
+        const QString detail = QString::fromLocal8Bit(tar.readAllStandardError()).trimmed();
+        QDir(stagingDir).removeRecursively();
+        emit failed(SelfUpdateError::ExtractFailed, detail);
+        return;
+    }
+
+    emit staged(stagingDir, payloadDir);
 }
 
 WindowsSelfUpdateService::WindowsSelfUpdateService(QObject* parent) : QObject(parent)
@@ -107,35 +147,27 @@ void WindowsSelfUpdateService::OnProgress(const double fraction) const
     }
 }
 
-void WindowsSelfUpdateService::OnStaged() const
+void WindowsSelfUpdateService::OnStaged(const QString& stagingDir, const QString& payloadDir) const
 {
-    const QString exePath = QCoreApplication::applicationFilePath();
-    const QString newPath = exePath + QStringLiteral(".new");
-    const QString oldPath = exePath + QStringLiteral(".old");
+    const QString scriptPath =
+        QDir::toNativeSeparators(QDir::tempPath() + QStringLiteral("/gsxi-self-update.cmd"));
 
-    QFile::remove(oldPath);
-
-    if (!QFile::rename(exePath, oldPath))
+    if (!WriteSelfUpdateScript(scriptPath, payloadDir, QCoreApplication::applicationDirPath(),
+                               QCoreApplication::applicationFilePath(), stagingDir))
     {
         OnFailed(SelfUpdateError::SwapFailed, {});
         return;
     }
 
-    if (!QFile::rename(newPath, exePath))
-    {
-        QFile::rename(oldPath, exePath);
-        OnFailed(SelfUpdateError::SwapFailed, {});
-        return;
-    }
-
-    if (QProcess::startDetached(exePath, {}, QFileInfo(exePath).absolutePath()))
-    {
-        QCoreApplication::quit();
-    }
-    else
+    if (!QProcess::startDetached(QStringLiteral("cmd.exe"),
+                                 {QStringLiteral("/d"), QStringLiteral("/c"), scriptPath},
+                                 QDir::tempPath()))
     {
         OnFailed(SelfUpdateError::RelaunchFailed, {});
+        return;
     }
+
+    QCoreApplication::quit();
 }
 
 void WindowsSelfUpdateService::OnFailed(const SelfUpdateError kind, const QString& detail) const

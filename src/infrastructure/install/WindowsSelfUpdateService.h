@@ -18,7 +18,7 @@ public slots:
 
 signals:
     void progress(double fraction);
-    void staged();
+    void staged(const QString& stagingDir, const QString& payloadDir);
     void failed(SelfUpdateError kind, const QString& detail);
 };
 
@@ -38,7 +38,7 @@ signals:
 
 private:
     void OnProgress(double fraction) const;
-    void OnStaged() const;
+    void OnStaged(const QString& stagingDir, const QString& payloadDir) const;
     void OnFailed(SelfUpdateError kind, const QString& detail) const;
 
     SelfUpdateObserver* observer_ = nullptr;
