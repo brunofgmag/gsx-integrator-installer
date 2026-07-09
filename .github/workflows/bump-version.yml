@@ -52,5 +52,11 @@ jobs:
             echo "No open release PR; nothing to merge."
             exit 0
           fi
-          gh pr merge "$pr" --squash
+          identity="$(gh pr view "$pr" --json author,isCrossRepository,files \
+            --jq '"\(.author.login) \(.isCrossRepository) \([.files[].path] | sort | join(","))"')"
+          if [ "$identity" != "brunofgmag false .release-please-manifest.json,CHANGELOG.md,VERSION.txt" ]; then
+            echo "::error::PR #$pr does not look like a legitimate release PR ($identity)"
+            exit 1
+          fi
+          gh pr merge "$pr" --squash --admin
           gh pr edit "$pr" --remove-label "autorelease: pending"
