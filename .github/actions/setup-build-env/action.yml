@@ -1,0 +1,20 @@
+name: Setup build environment
+description: Install Qt (MSVC 2022 x64)
+
+inputs:
+  qt-version:
+    description: Qt version to install
+    required: false
+    default: '6.8.3'
+
+runs:
+  using: composite
+  steps:
+    - name: Install Qt (MSVC 2022 x64)
+      uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+      with:
+        version: ${{ inputs.qt-version }}
+        host: windows
+        target: desktop
+        arch: win64_msvc2022_64
+        cache: true

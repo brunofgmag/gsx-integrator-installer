@@ -1,0 +1,36 @@
+name: Merge Validator
+
+on:
+  pull_request:
+    branches: [develop, main]
+    paths-ignore:
+      - '.github/**'
+      - '**.md'
+      - 'LICENSE'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: merge-validator-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  full-validation:
+    name: Build + unit tests
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      !startsWith(github.event.pull_request.head.ref, 'release-please--')
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build-env
+
+      - name: Build and run unit tests (Release)
+        shell: pwsh
+        run: ./build.ps1 -Config Release -RunTests

@@ -1,0 +1,55 @@
+set(DOMAIN_SOURCES
+        src/domain/model/ReleaseInfo.h
+        src/domain/model/SimInstall.h
+        src/domain/model/InstallRequest.h
+        src/domain/model/InstallOutcome.h
+        src/domain/Versions.cpp
+        src/domain/Versions.h
+)
+
+set(APPLICATION_SOURCES
+        src/application/model/InstallerSettings.h
+        src/application/ports/SettingsRepository.h
+        src/application/ports/ReleaseProvider.h
+        src/application/ports/SelfUpdateService.h
+        src/application/ports/SystemInspector.h
+        src/application/ports/InstallService.h
+        src/application/ports/InstallerGateway.h
+        src/application/install/InstallOrchestrator.cpp
+        src/application/install/InstallOrchestrator.h
+)
+
+set(INFRASTRUCTURE_SOURCES
+        src/infrastructure/settings/QSettingsRepository.cpp
+        src/infrastructure/settings/QSettingsRepository.h
+        src/infrastructure/github/GithubDownloader.cpp
+        src/infrastructure/github/GithubDownloader.h
+        src/infrastructure/github/GithubReleaseProvider.cpp
+        src/infrastructure/github/GithubReleaseProvider.h
+        src/infrastructure/github/ReleaseParser.cpp
+        src/infrastructure/github/ReleaseParser.h
+        src/infrastructure/system/SimDetection.cpp
+        src/infrastructure/system/SimDetection.h
+        src/infrastructure/system/InstallLocations.cpp
+        src/infrastructure/system/InstallLocations.h
+        src/infrastructure/system/WindowsSystemInspector.cpp
+        src/infrastructure/system/WindowsSystemInspector.h
+        src/infrastructure/install/ExeXml.cpp
+        src/infrastructure/install/ExeXml.h
+        src/infrastructure/install/RemovalScript.cpp
+        src/infrastructure/install/RemovalScript.h
+        src/infrastructure/install/DirCopy.cpp
+        src/infrastructure/install/DirCopy.h
+        src/infrastructure/install/WindowsInstallerGateway.cpp
+        src/infrastructure/install/WindowsInstallerGateway.h
+        src/infrastructure/install/EngineInstallService.cpp
+        src/infrastructure/install/EngineInstallService.h
+        src/infrastructure/install/WindowsSelfUpdateService.cpp
+        src/infrastructure/install/WindowsSelfUpdateService.h
+        src/infrastructure/platform/WindowsTitleBar.h
+)
+
+set(VIEWMODEL_SOURCES
+        src/viewmodel/SetupViewModel.cpp
+        src/viewmodel/SetupViewModel.h
+)
