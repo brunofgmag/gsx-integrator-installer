@@ -23,6 +23,7 @@ class DirCopyTest final : public QObject
 private slots:
     static void copiesFilesAndNestedSubdirs();
     static void failsWhenSourceMissing();
+    static void removesContentsButKeepsNamedSubdir();
 };
 
 void DirCopyTest::copiesFilesAndNestedSubdirs()
@@ -53,6 +54,30 @@ void DirCopyTest::failsWhenSourceMissing()
 
     QVERIFY(!CopyDirRecursively(sandbox.filePath(QStringLiteral("nope")),
                                 sandbox.filePath(QStringLiteral("dest"))));
+}
+
+void DirCopyTest::removesContentsButKeepsNamedSubdir()
+{
+    const QTemporaryDir sandbox;
+
+    QVERIFY(sandbox.isValid());
+
+    const QString installDir = sandbox.filePath(QStringLiteral("install"));
+
+    QVERIFY(QDir().mkpath(installDir + QStringLiteral("/maintenance")));
+    QVERIFY(QDir().mkpath(installDir + QStringLiteral("/resources")));
+
+    WriteAll(installDir + QStringLiteral("/gsx-integrator-client.exe"), QStringLiteral("old"));
+    WriteAll(installDir + QStringLiteral("/resources/data.bin"), QStringLiteral("x"));
+    WriteAll(installDir + QStringLiteral("/maintenance/gsx-integrator-installer.exe"),
+             QStringLiteral("keep"));
+
+    QVERIFY(RemoveDirContentsExcept(installDir, QStringLiteral("maintenance")));
+
+    QVERIFY(QDir(installDir).exists());
+    QVERIFY(!QFile::exists(installDir + QStringLiteral("/gsx-integrator-client.exe")));
+    QVERIFY(!QDir(installDir + QStringLiteral("/resources")).exists());
+    QVERIFY(QFile::exists(installDir + QStringLiteral("/maintenance/gsx-integrator-installer.exe")));
 }
 
 QTEST_GUILESS_MAIN(DirCopyTest)

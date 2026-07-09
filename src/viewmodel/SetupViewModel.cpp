@@ -38,12 +38,12 @@ SetupViewModel::~SetupViewModel()
 void SetupViewModel::refresh()
 {
     state_ = QStringLiteral("checking");
-    errorText_.clear();
+    errorText_ = nullptr;
     clientRelease_ = {};
     commbusRelease_ = {};
     installerRelease_ = {};
     installerUpdateState_ = QStringLiteral("idle");
-    installerUpdateError_.clear();
+    installerUpdateError_ = nullptr;
 
     clientInstalled_ = inspector_->InstalledClientVersion();
     clientRunning_ = inspector_->IsClientRunning();
@@ -88,9 +88,12 @@ void SetupViewModel::OnReleasesFetched(const ReleaseInfo& client, const ReleaseI
     if (!clientRelease_.valid || !commbusRelease_.valid)
     {
         const ReleaseInfo& bad = !clientRelease_.valid ? clientRelease_ : commbusRelease_;
+        const ReleaseError kind = bad.errorKind;
         state_ = QStringLiteral("error");
-        errorText_ = tr("Could not read the latest releases from GitHub. %1")
-            .arg(ReleaseErrorText(bad.errorKind));
+        errorText_ = [kind] {
+            return tr("Could not read the latest releases from GitHub. %1")
+                .arg(ReleaseErrorText(kind));
+        };
     }
     else
     {
@@ -378,20 +381,20 @@ void SetupViewModel::install()
         return;
     }
 
-    errorText_.clear();
+    errorText_ = nullptr;
 
     UpdateRunningProcesses();
 
     if (GetClientNeedsInstall() && clientRunning_)
     {
-        errorText_ = tr("Close GSX Integrator before updating it.");
+        errorText_ = [] { return tr("Close GSX Integrator before updating it."); };
         emit Changed();
         return;
     }
 
     if (GetAnySimRunning())
     {
-        errorText_ = tr("Close the simulator before installing the CommBus module.");
+        errorText_ = [] { return tr("Close the simulator before installing the CommBus module."); };
         emit Changed();
         return;
     }
@@ -444,7 +447,7 @@ void SetupViewModel::install()
     }
 
     state_ = QStringLiteral("installing");
-    progressText_ = tr("Preparing");
+    progressText_ = [] { return tr("Preparing"); };
     progressValue_ = -1.0;
 
     emit Changed();
@@ -454,7 +457,7 @@ void SetupViewModel::install()
 
 void SetupViewModel::OnInstallProgress(const InstallProgress& update)
 {
-    progressText_ = InstallProgressText(update);
+    progressText_ = [update] { return InstallProgressText(update); };
     progressValue_ = update.fraction;
 
     emit Changed();
@@ -471,7 +474,7 @@ void SetupViewModel::OnInstallFinished(const InstallOutcome& outcome)
     else
     {
         state_ = QStringLiteral("error");
-        errorText_ = InstallErrorText(outcome);
+        errorText_ = [outcome] { return InstallErrorText(outcome); };
     }
 
     emit Changed();
@@ -544,7 +547,7 @@ void SetupViewModel::selfUpdate()
     }
 
     installerUpdateState_ = QStringLiteral("updating");
-    installerUpdateError_.clear();
+    installerUpdateError_ = nullptr;
     installerUpdateProgress_ = -1.0;
 
     emit Changed();
@@ -562,7 +565,7 @@ void SetupViewModel::OnSelfUpdateProgress(const double fraction)
 void SetupViewModel::OnSelfUpdateFailed(const SelfUpdateError kind, const QString& detail)
 {
     installerUpdateState_ = QStringLiteral("error");
-    installerUpdateError_ = SelfUpdateErrorText(kind, detail);
+    installerUpdateError_ = [kind, detail] { return SelfUpdateErrorText(kind, detail); };
 
     emit Changed();
 }
@@ -595,12 +598,12 @@ void SetupViewModel::uninstall()
 
     if (clientRunning_)
     {
-        errorText_ = tr("Close GSX Integrator before uninstalling it.");
+        errorText_ = [] { return tr("Close GSX Integrator before uninstalling it."); };
         emit Changed();
         return;
     }
 
-    errorText_.clear();
+    errorText_ = nullptr;
     install_->Uninstall();
     state_ = QStringLiteral("uninstalled");
 

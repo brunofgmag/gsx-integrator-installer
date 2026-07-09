@@ -1,6 +1,8 @@
 #ifndef GSX_INTEGRATOR_INSTALLER_VIEWMODEL_SETUPVIEWMODEL_H
 #define GSX_INTEGRATOR_INSTALLER_VIEWMODEL_SETUPVIEWMODEL_H
 
+#include <functional>
+
 #include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtCore/QTimer>
@@ -35,7 +37,7 @@ class SetupViewModel final : public QObject,
     Q_PROPERTY(double progressValue READ GetProgressValue NOTIFY Changed)
     Q_PROPERTY(bool desktopShortcut READ GetDesktopShortcut WRITE SetDesktopShortcut NOTIFY Changed)
     Q_PROPERTY(bool clientStartMenuShortcut READ GetClientStartMenuShortcut
-               WRITE SetClientStartMenuShortcut NOTIFY Changed)
+        WRITE SetClientStartMenuShortcut NOTIFY Changed)
     Q_PROPERTY(bool setupShortcut READ GetSetupShortcut WRITE SetSetupShortcut NOTIFY Changed)
     Q_PROPERTY(bool forceReinstall READ GetForceReinstall WRITE SetForceReinstall NOTIFY Changed)
     Q_PROPERTY(int autoStartMode READ GetAutoStartMode WRITE SetAutoStartMode NOTIFY Changed)
@@ -71,7 +73,7 @@ public:
     Q_INVOKABLE void uninstall();
 
     [[nodiscard]] QString GetState() const { return state_; }
-    [[nodiscard]] QString GetErrorText() const { return errorText_; }
+    [[nodiscard]] QString GetErrorText() const { return errorText_ ? errorText_() : QString(); }
     [[nodiscard]] QString GetClientInstalled() const { return clientInstalled_; }
     [[nodiscard]] QString GetClientLatest() const { return clientRelease_.version; }
     [[nodiscard]] QString GetCommbusLatest() const { return commbusRelease_.version; }
@@ -82,7 +84,7 @@ public:
     [[nodiscard]] bool HasAnythingToDo() const;
     [[nodiscard]] bool IsInstalled() const { return !clientInstalled_.isEmpty(); }
     [[nodiscard]] QString GetActionLabel() const;
-    [[nodiscard]] QString GetProgressText() const { return progressText_; }
+    [[nodiscard]] QString GetProgressText() const { return progressText_ ? progressText_() : QString(); }
     [[nodiscard]] double GetProgressValue() const { return progressValue_; }
     [[nodiscard]] bool GetDesktopShortcut() const { return desktopShortcut_; }
     void SetDesktopShortcut(bool value);
@@ -100,11 +102,19 @@ public:
     [[nodiscard]] QString GetInstallerLatest() const { return installerRelease_.version; }
     [[nodiscard]] QString GetInstallerUpdateState() const { return installerUpdateState_; }
     [[nodiscard]] double GetInstallerUpdateProgress() const { return installerUpdateProgress_; }
-    [[nodiscard]] QString GetInstallerUpdateError() const { return installerUpdateError_; }
+
+    [[nodiscard]] QString GetInstallerUpdateError() const
+    {
+        return installerUpdateError_ ? installerUpdateError_() : QString();
+    }
+
     [[nodiscard]] QString GetLanguage() const { return language_; }
     void SetLanguage(const QString& language);
 
-    void RefreshTranslations() { emit Changed(); }
+    void RefreshTranslations()
+    {
+        emit Changed();
+    }
 
     void OnReleasesFetched(const ReleaseInfo& client, const ReleaseInfo& commbus,
                            const ReleaseInfo& installer) override;
@@ -126,10 +136,10 @@ private:
         bool selected = true;
     };
 
-    bool SimNeedsInstall(const SimEntry& entry) const;
-    bool HasInstallWork() const;
-    bool HasShortcutChanges() const;
-    bool HasSimGeneration(int generation) const;
+    [[nodiscard]] bool SimNeedsInstall(const SimEntry& entry) const;
+    [[nodiscard]] bool HasInstallWork() const;
+    [[nodiscard]] bool HasShortcutChanges() const;
+    [[nodiscard]] bool HasSimGeneration(int generation) const;
     bool UpdateRunningProcesses();
     void PollRunningProcesses();
     void RefreshInstalledVersions();
@@ -146,7 +156,7 @@ private:
     SelfUpdateService* selfUpdate_;
 
     QString state_ = QStringLiteral("checking");
-    QString errorText_;
+    std::function<QString()> errorText_;
     QString clientInstalled_;
     bool clientRunning_ = false;
     ReleaseInfo clientRelease_;
@@ -154,9 +164,9 @@ private:
     ReleaseInfo installerRelease_;
     QString installerUpdateState_ = QStringLiteral("idle");
     double installerUpdateProgress_ = -1.0;
-    QString installerUpdateError_;
+    std::function<QString()> installerUpdateError_;
     QList<SimEntry> sims_;
-    QString progressText_;
+    std::function<QString()> progressText_;
     double progressValue_ = -1.0;
     bool desktopShortcut_ = true;
     bool clientStartMenuShortcut_ = true;

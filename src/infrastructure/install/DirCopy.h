@@ -5,4 +5,6 @@
 
 bool CopyDirRecursively(const QString& sourceDir, const QString& destDir);
 
+bool RemoveDirContentsExcept(const QString& dir, const QString& keepName);
+
 #endif
