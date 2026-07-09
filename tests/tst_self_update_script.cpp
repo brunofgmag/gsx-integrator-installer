@@ -67,7 +67,6 @@ void SelfUpdateScriptTest::replacesBundleAndCleansUp()
 
     WriteAll(payload + QStringLiteral("/gsx-integrator-installer.exe"), QStringLiteral("new-exe"));
     WriteAll(payload + QStringLiteral("/plugins/extra.dll"), QStringLiteral("new-dll"));
-    // robocopy skips files with equal size and timestamp, so the stale content must differ in size
     WriteAll(app + QStringLiteral("/gsx-integrator-installer.exe"), QStringLiteral("outdated-exe"));
     WriteAll(app + QStringLiteral("/leftover.txt"), QStringLiteral("keep"));
 
