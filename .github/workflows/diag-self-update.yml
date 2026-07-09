@@ -1,0 +1,42 @@
+name: Diag self-update test
+
+on:
+  push:
+    branches: [ fix/auto-updater ]
+
+permissions:
+  contents: read
+
+jobs:
+  diag:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup environment
+        uses: brunofgmag/gsx-integrator-ci/.github/actions/setup-build-env@main
+
+      - name: Build
+        shell: pwsh
+        run: ./build.ps1 -Config Release
+
+      - name: Run test directly (piped)
+        shell: pwsh
+        run: |
+          "TEMP=$env:TEMP"
+          "TMP=$env:TMP"
+          $exe = 'build/release/Release/gsxi-self-update-script-tests.exe'
+          & $exe -v2
+          "EXITCODE: $LASTEXITCODE"
+          exit 0
+
+      - name: Run test with output to file
+        shell: pwsh
+        run: |
+          $exe = 'build/release/Release/gsxi-self-update-script-tests.exe'
+          & $exe -v2 *> direct.txt
+          "EXITCODE: $LASTEXITCODE"
+          Get-Content direct.txt
+          exit 0
