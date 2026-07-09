@@ -38,6 +38,8 @@ set(INFRASTRUCTURE_SOURCES
         src/infrastructure/install/ExeXml.h
         src/infrastructure/install/RemovalScript.cpp
         src/infrastructure/install/RemovalScript.h
+        src/infrastructure/install/SelfUpdateScript.cpp
+        src/infrastructure/install/SelfUpdateScript.h
         src/infrastructure/install/DirCopy.cpp
         src/infrastructure/install/DirCopy.h
         src/infrastructure/install/WindowsInstallerGateway.cpp
