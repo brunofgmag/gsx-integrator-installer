@@ -32,13 +32,14 @@ namespace
 
     QString TarExecutable()
     {
-        QString tar = QStandardPaths::findExecutable(QStringLiteral("tar"));
-        if (tar.isEmpty())
+        QString systemTar = qEnvironmentVariable("SystemRoot", QStringLiteral("C:/Windows"))
+            + QStringLiteral("/System32/tar.exe");
+        if (QFile::exists(systemTar))
         {
-            tar = QStringLiteral("C:/Windows/System32/tar.exe");
+            return systemTar;
         }
 
-        return tar;
+        return QStandardPaths::findExecutable(QStringLiteral("tar"));
     }
 }
 
@@ -167,7 +168,7 @@ void WindowsSelfUpdateService::OnStaged(const QString& stagingDir, const QString
         return;
     }
 
-    QCoreApplication::quit();
+    QCoreApplication::exit(0);
 }
 
 void WindowsSelfUpdateService::OnFailed(const SelfUpdateError kind, const QString& detail) const
