@@ -26,12 +26,14 @@ namespace
 {
     QString TarExecutable()
     {
-        QString tar = QStandardPaths::findExecutable(QStringLiteral("tar"));
-        if (tar.isEmpty())
+        QString systemTar = qEnvironmentVariable("SystemRoot", QStringLiteral("C:/Windows"))
+            + QStringLiteral("/System32/tar.exe");
+        if (QFile::exists(systemTar))
         {
-            tar = QStringLiteral("C:/Windows/System32/tar.exe");
+            return systemTar;
         }
-        return tar;
+
+        return QStandardPaths::findExecutable(QStringLiteral("tar"));
     }
 
     InstallOutcome ExtractZipTo(const QString& zipPath, const QString& destParent)
