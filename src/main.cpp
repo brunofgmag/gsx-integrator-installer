@@ -25,6 +25,12 @@
 
 int main(int argc, char* argv[])
 {
+    CreateMutexW(nullptr, FALSE, L"Local\\gsx-integrator-installer.single-instance");
+    if (GetLastError() == ERROR_ALREADY_EXISTS)
+    {
+        return 0;
+    }
+
     for (int i = 1; i < argc; ++i)
     {
         if (std::strcmp(argv[i], "--uninstall") == 0)
