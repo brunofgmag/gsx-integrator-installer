@@ -18,6 +18,7 @@ if (MSVC)
             HINTS "${QT_BIN_DIR}"
             NO_DEFAULT_PATH
             REQUIRED)
+    find_program(POWERSHELL_EXE NAMES pwsh powershell REQUIRED)
 
     add_custom_command(TARGET ${APP_NAME} POST_BUILD
             COMMAND "${WINDEPLOYQT_EXECUTABLE}"
@@ -25,11 +26,19 @@ if (MSVC)
             --qmldir "${CMAKE_SOURCE_DIR}/src/qml"
             --no-translations
             --skip-plugin-types qmltooling,generic,imageformats,iconengines,networkinformation,platforminputcontexts
+            --exclude-plugins qcertonlybackend,qopensslbackend
             --no-system-d3d-compiler
             --no-system-dxc-compiler
             --no-opengl-sw
             --no-compiler-runtime
             "$<TARGET_FILE:${APP_NAME}>"
+            COMMAND "${POWERSHELL_EXE}" -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/tools/deploy-msvc-runtime.ps1"
+            -DeploymentDir "$<TARGET_FILE_DIR:${APP_NAME}>"
+            -Configuration "$<CONFIG>"
+            COMMAND "${POWERSHELL_EXE}" -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/tools/prune-deployment.ps1"
+            -DeploymentDir "$<TARGET_FILE_DIR:${APP_NAME}>"
             COMMENT "Deploying Qt runtime and QML imports"
             VERBATIM)
 endif ()

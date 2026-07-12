@@ -54,6 +54,7 @@ void ExeXmlTest::addUpdateCreatesFileWithEntry()
     QVERIFY(content.contains(QStringLiteral("Launch.Addon")));
     QVERIFY(content.contains(QStringLiteral("gsx-integrator-client.exe")));
     QVERIFY(content.contains(QStringLiteral("GSX Integrator")));
+    QVERIFY(content.contains(QStringLiteral("<CommandLine>--tray</CommandLine>")));
 }
 
 void ExeXmlTest::addUpdateUpdatesInsteadOfDuplicating()
@@ -71,6 +72,7 @@ void ExeXmlTest::addUpdateUpdatesInsteadOfDuplicating()
     QCOMPARE(static_cast<int>(content.count(QStringLiteral("<Launch.Addon>"))), 1);
     QVERIFY(content.contains(QStringLiteral("C:\\New\\gsx-integrator-client.exe")));
     QVERIFY(!content.contains(QStringLiteral("C:\\Old\\gsx-integrator-client.exe")));
+    QCOMPARE(static_cast<int>(content.count(QStringLiteral("<CommandLine>--tray</CommandLine>"))), 1);
 }
 
 void ExeXmlTest::addUpdatePreservesOtherAddons()
