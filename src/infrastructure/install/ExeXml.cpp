@@ -89,6 +89,7 @@ bool ExeXmlAddUpdate(const QString& exeXmlPath, const QString& exePath, const QS
             SetChildText(doc, addon, QStringLiteral("ManualLoad"), QStringLiteral("False"));
             SetChildText(doc, addon, QStringLiteral("Name"), appName);
             SetChildText(doc, addon, QStringLiteral("Path"), exePath);
+            SetChildText(doc, addon, QStringLiteral("CommandLine"), QStringLiteral("--tray"));
         }
     }
 
@@ -99,6 +100,7 @@ bool ExeXmlAddUpdate(const QString& exeXmlPath, const QString& exePath, const QS
         SetChildText(doc, addon, QStringLiteral("ManualLoad"), QStringLiteral("False"));
         SetChildText(doc, addon, QStringLiteral("Name"), appName);
         SetChildText(doc, addon, QStringLiteral("Path"), exePath);
+        SetChildText(doc, addon, QStringLiteral("CommandLine"), QStringLiteral("--tray"));
         root.appendChild(addon);
     }
 
