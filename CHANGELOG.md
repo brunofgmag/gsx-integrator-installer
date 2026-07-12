@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.1.7...v0.1.8) (2026-07-12)
+
+
+### Bug Fixes
+
+* install client with tray param ([#20](https://github.com/brunofgmag/gsx-integrator-installer/issues/20)) ([a054475](https://github.com/brunofgmag/gsx-integrator-installer/commit/a0544757605f8901b9359d2d91ad4136d6ee3d56))
+
 ## [0.1.7](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.1.6...v0.1.7) (2026-07-10)
 
 
