@@ -12,6 +12,7 @@
 #include <QtGui/QStyleHints>
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQuick/QQuickWindow>
+#include <QtQuick/QSGRendererInterface>
 
 #include "application/install/InstallOrchestrator.h"
 #include "infrastructure/github/GithubReleaseProvider.h"
@@ -71,6 +72,12 @@ int main(int argc, char* argv[])
     QFont monoFont(QStringLiteral("Cascadia Mono"));
     monoFont.setStyleHint(QFont::Monospace);
     QGuiApplication::setFont(monoFont);
+
+    if (!qEnvironmentVariableIsSet("QSG_RHI_BACKEND")
+        && !qEnvironmentVariableIsSet("QT_QUICK_BACKEND"))
+    {
+        QQuickWindow::setGraphicsApi(QSGRendererInterface::Software);
+    }
 
     QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 
