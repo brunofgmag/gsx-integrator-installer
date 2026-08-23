@@ -136,7 +136,7 @@ InstallOutcome InstallOrchestrator::InstallCommbus(const InstallRequest& request
 
         report(InstallPhase::InstallingCommbus, target.communityPath, -1.0);
         if (const InstallOutcome extract =
-                gateway_.ExtractCommbusPackage(download.zipPath, target.communityPath);
+                gateway_.ExtractCommbusPackage(download.zipPath, target.communityPath, version);
             !extract.ok())
         {
             return extract;

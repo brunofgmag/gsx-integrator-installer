@@ -63,9 +63,11 @@ public:
         return {extractClientStatus, {}};
     }
 
-    InstallOutcome ExtractCommbusPackage(const QString&, const QString& community) override
+    InstallOutcome ExtractCommbusPackage(const QString&,
+                                         const QString& community,
+                                         const QString& version) override
     {
-        calls << QStringLiteral("extractCommbus:%1").arg(community);
+        calls << QStringLiteral("extractCommbus:%1:%2").arg(community, version);
         return {extractCommbusStatus, {}};
     }
 

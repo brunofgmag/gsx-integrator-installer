@@ -22,10 +22,19 @@ QList<SimInstall> WindowsSystemInspector::DetectSims() const
 
 QString WindowsSystemInspector::InstalledCommbusVersion(const QString& communityPath) const
 {
-    const QString manifest = communityPath + u'/'
-        + QLatin1String(kCommbusPackageName) + QStringLiteral("/manifest.json");
+    const QString packageDir = communityPath + u'/' + QLatin1String(kCommbusPackageName);
 
-    QFile file(manifest);
+    QFile marker(packageDir + u'/' + QLatin1String(kCommbusVersionMarker));
+    if (marker.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        const QString version = QString::fromUtf8(marker.readAll()).trimmed();
+        if (!version.isEmpty())
+        {
+            return version;
+        }
+    }
+
+    QFile file(packageDir + QStringLiteral("/manifest.json"));
 
     if (!file.open(QIODevice::ReadOnly))
     {

@@ -17,7 +17,8 @@ public:
     [[nodiscard]] bool PrepareCleanInstallDir() override;
     [[nodiscard]] InstallOutcome ExtractClientPackage(const QString& zipPath) override;
     [[nodiscard]] InstallOutcome ExtractCommbusPackage(const QString& zipPath,
-                                                       const QString& communityPath) override;
+                                                       const QString& communityPath,
+                                                       const QString& version) override;
     void InstallUninstallerCopy() override;
     void WriteUninstallEntry(const QString& version) override;
     void ApplyShortcut(ShortcutKind kind, bool wanted) override;

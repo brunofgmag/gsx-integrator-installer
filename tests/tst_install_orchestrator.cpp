@@ -14,6 +14,7 @@ private slots:
     static void abortsWhenPackageMissingExe();
     static void installsClientInOrder();
     static void abortsWhenSimRunningForCommbus();
+    static void stampsCommbusVersionOnExtract();
     static void appliesShortcutsWithWantedFlags();
     static void updatesExeXmlTargets();
     static void uninstallRunsFullSequence();
@@ -116,6 +117,22 @@ void InstallOrchestratorTest::abortsWhenSimRunningForCommbus()
     QVERIFY(!result.ok());
     QCOMPARE(result.status, InstallStatus::SimRunning);
     QVERIFY(!gateway.calls.contains(QStringLiteral("download")));
+}
+
+void InstallOrchestratorTest::stampsCommbusVersionOnExtract()
+{
+    FakeInstallerGateway gateway;
+    InstallRequest request;
+    CommbusTarget target;
+
+    request.commbusRelease.version = QStringLiteral("0.2.0");
+    target.communityPath = QStringLiteral("C:/Community");
+    request.commbusTargets.append(target);
+
+    const InstallOutcome result = InstallOrchestrator(gateway).RunInstall(request, {});
+
+    QVERIFY(result.ok());
+    QVERIFY(gateway.calls.contains(QStringLiteral("extractCommbus:C:/Community:0.2.0")));
 }
 
 void InstallOrchestratorTest::appliesShortcutsWithWantedFlags()
