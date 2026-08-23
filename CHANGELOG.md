@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.2.0...v0.3.0) (2026-08-23)
+
+
+### Features
+
+* stamp the installed commbus version into the package ([0b864bb](https://github.com/brunofgmag/gsx-integrator-installer/commit/0b864bb29ba7e12a7589aa19a6bc61d03f6a2687))
+
 ## [0.2.0](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.1.8...v0.2.0) (2026-08-17)
 
 
