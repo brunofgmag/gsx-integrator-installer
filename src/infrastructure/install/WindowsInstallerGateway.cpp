@@ -109,6 +109,15 @@ namespace
         return ok;
     }
 
+    void WriteCommbusVersionMarker(const QString& packageDir, const QString& version)
+    {
+        QFile marker(packageDir + u'/' + QLatin1String(kCommbusVersionMarker));
+        if (marker.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
+        {
+            marker.write(version.toUtf8());
+        }
+    }
+
     QString MaintenanceDir()
     {
         return QDir::toNativeSeparators(ClientInstallDir() + QStringLiteral("/maintenance"));
@@ -227,7 +236,8 @@ InstallOutcome WindowsInstallerGateway::ExtractClientPackage(const QString& zipP
 }
 
 InstallOutcome WindowsInstallerGateway::ExtractCommbusPackage(const QString& zipPath,
-                                                              const QString& communityPath)
+                                                              const QString& communityPath,
+                                                              const QString& version)
 {
     const QString packageDir = communityPath + u'/' + QLatin1String(kCommbusPackageName);
     if (QDir(packageDir).exists() && !QDir(packageDir).removeRecursively())
@@ -235,7 +245,14 @@ InstallOutcome WindowsInstallerGateway::ExtractCommbusPackage(const QString& zip
         return {InstallStatus::CommbusReplaceFailed, communityPath};
     }
 
-    return ExtractZipTo(zipPath, communityPath);
+    if (const InstallOutcome extract = ExtractZipTo(zipPath, communityPath); !extract.ok())
+    {
+        return extract;
+    }
+
+    WriteCommbusVersionMarker(packageDir, version);
+
+    return {};
 }
 
 void WindowsInstallerGateway::InstallUninstallerCopy()

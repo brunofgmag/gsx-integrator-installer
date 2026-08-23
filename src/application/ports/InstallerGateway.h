@@ -37,7 +37,8 @@ public:
     [[nodiscard]] virtual bool PrepareCleanInstallDir() = 0;
     [[nodiscard]] virtual InstallOutcome ExtractClientPackage(const QString& zipPath) = 0;
     [[nodiscard]] virtual InstallOutcome ExtractCommbusPackage(const QString& zipPath,
-                                                               const QString& communityPath) = 0;
+                                                               const QString& communityPath,
+                                                               const QString& version) = 0;
     virtual void InstallUninstallerCopy() = 0;
     virtual void WriteUninstallEntry(const QString& version) = 0;
     virtual void ApplyShortcut(ShortcutKind kind, bool wanted) = 0;

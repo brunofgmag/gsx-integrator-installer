@@ -6,6 +6,7 @@
 inline constexpr auto kUninstallKey =
     R"(HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\gsx-integrator-client)";
 inline constexpr auto kCommbusPackageName = "gsx-integrator-commbus";
+inline constexpr auto kCommbusVersionMarker = ".gsxi-version";
 inline constexpr auto kShortcutName = "GSX Integrator.lnk";
 inline constexpr auto kSetupShortcutName = "GSX Integrator Installer.lnk";
 inline constexpr auto kClientExeName = "gsx-integrator-client.exe";
