@@ -109,6 +109,22 @@ namespace
         return ok;
     }
 
+    bool RemoveExistingPackageDir(const QString& packageDir)
+    {
+        const QFileInfo entry(packageDir);
+        if (entry.isJunction() || entry.isSymbolicLink())
+        {
+            return QDir().rmdir(packageDir);
+        }
+
+        if (!QDir(packageDir).exists())
+        {
+            return true;
+        }
+
+        return QDir(packageDir).removeRecursively();
+    }
+
     void WriteCommbusVersionMarker(const QString& packageDir, const QString& version)
     {
         QFile marker(packageDir + u'/' + QLatin1String(kCommbusVersionMarker));
@@ -240,7 +256,7 @@ InstallOutcome WindowsInstallerGateway::ExtractCommbusPackage(const QString& zip
                                                               const QString& version)
 {
     const QString packageDir = communityPath + u'/' + QLatin1String(kCommbusPackageName);
-    if (QDir(packageDir).exists() && !QDir(packageDir).removeRecursively())
+    if (!RemoveExistingPackageDir(packageDir))
     {
         return {InstallStatus::CommbusReplaceFailed, communityPath};
     }
