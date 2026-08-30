@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.1](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.3.0...v0.3.1) (2026-08-29)
+
+
+* remove only the junction when replacing the commbus package ([#34](https://github.com/brunofgmag/gsx-integrator-installer/issues/34)) ([c0520a9](https://github.com/brunofgmag/gsx-integrator-installer/commit/c0520a9c931f0b34744866f8d316f0d2454be682))
+
+
+### Bug Fixes
+
+* remove only the junction when replacing the commbus package ([50a0273](https://github.com/brunofgmag/gsx-integrator-installer/commit/50a02730821da134c43bdce468c53e7065bd9923)) ([c0520a9](https://github.com/brunofgmag/gsx-integrator-installer/commit/c0520a9c931f0b34744866f8d316f0d2454be682))
+
 ## [0.3.0](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.2.0...v0.3.0) (2026-08-23)
 
 
