@@ -91,7 +91,7 @@ void SetupViewModel::OnReleasesFetched(const ReleaseInfo& client, const ReleaseI
         const ReleaseError kind = bad.errorKind;
         state_ = QStringLiteral("error");
         errorText_ = [kind] {
-            return tr("Could not read the latest releases from GitHub. %1")
+            return tr("Couldn't check for updates: %1")
                 .arg(ReleaseErrorText(kind));
         };
     }
@@ -108,13 +108,13 @@ QString SetupViewModel::ReleaseErrorText(const ReleaseError kind)
     switch (kind)
     {
     case ReleaseError::Network:
-        return tr("Could not reach GitHub.");
+        return tr("no connection to GitHub.");
     case ReleaseError::BadResponse:
-        return tr("GitHub returned an unexpected response.");
+        return tr("GitHub sent an unexpected response.");
     case ReleaseError::NoVersionTag:
-        return tr("The latest release has no readable version.");
+        return tr("the latest release has no version number.");
     case ReleaseError::MissingAsset:
-        return tr("The latest release is missing its download.");
+        return tr("the latest release has no download.");
     case ReleaseError::None:
         break;
     }
@@ -262,22 +262,22 @@ QVariantList SetupViewModel::GetAutoStartOptions() const
         list.append(map);
     };
 
-    add(kAutoStartNoChange, tr("Keep current configuration"));
-    add(kAutoStartDisable, tr("Disable auto-start"));
+    add(kAutoStartNoChange, tr("Don't change"));
+    add(kAutoStartDisable, tr("Off"));
 
     const bool has2020 = HasSimGeneration(2020);
     const bool has2024 = HasSimGeneration(2024);
     if (has2020 || has2024)
     {
-        add(kAutoStartAllSims, tr("Auto-start with MSFS 2020/2024"));
+        add(kAutoStartAllSims, tr("MSFS 2020 and 2024"));
     }
     if (has2020)
     {
-        add(kAutoStart2020Only, tr("Auto-start with MSFS 2020 only"));
+        add(kAutoStart2020Only, tr("MSFS 2020 only"));
     }
     if (has2024)
     {
-        add(kAutoStart2024Only, tr("Auto-start with MSFS 2024 only"));
+        add(kAutoStart2024Only, tr("MSFS 2024 only"));
     }
 
     return list;
@@ -447,7 +447,7 @@ void SetupViewModel::install()
     }
 
     state_ = QStringLiteral("installing");
-    progressText_ = [] { return tr("Preparing"); };
+    progressText_ = [] { return tr("Preparing…"); };
     progressValue_ = -1.0;
 
     emit Changed();
@@ -491,9 +491,9 @@ QString SetupViewModel::InstallProgressText(const InstallProgress& update)
     case InstallPhase::DownloadingCommbus:
         return tr("Downloading %1 %2").arg(tr("CommBus module"), update.detail);
     case InstallPhase::InstallingCommbus:
-        return tr("Installing CommBus module into %1").arg(update.detail);
+        return tr("Installing CommBus in %1").arg(update.detail);
     case InstallPhase::ConfiguringAutoStart:
-        return tr("Configuring simulator auto-start");
+        return tr("Setting up auto-start");
     }
 
     return {};
@@ -506,16 +506,16 @@ QString SetupViewModel::InstallErrorText(const InstallOutcome& outcome)
     case InstallStatus::ClientRunning:
         return tr("Close GSX Integrator before updating it.");
     case InstallStatus::InstallerInsideInstallDir:
-        return tr("This copy of the installer lives inside the install folder. "
-            "Run a downloaded installer to update the client.");
+        return tr("This installer can't update itself from the install folder. "
+            "Download it again from the releases page.");
     case InstallStatus::DownloadFailed:
-        return outcome.detail;
+        return tr("Download failed: %1").arg(outcome.detail);
     case InstallStatus::ChecksumMismatch:
-        return tr("Checksum mismatch for %1. Download corrupted?").arg(outcome.detail);
+        return tr("%1 didn't download correctly. Try again.").arg(outcome.detail);
     case InstallStatus::CleanInstallDirFailed:
         return tr("Could not remove the previous installation at %1.").arg(outcome.detail);
     case InstallStatus::TarMissing:
-        return tr("tar.exe not found (Windows 10 or newer is required).");
+        return tr("Windows 10 or newer is required.");
     case InstallStatus::ExtractFailed:
         return tr("Extraction failed: %1").arg(outcome.detail);
     case InstallStatus::ClientExeMissing:
@@ -575,9 +575,9 @@ QString SetupViewModel::SelfUpdateErrorText(const SelfUpdateError kind, const QS
     switch (kind)
     {
     case SelfUpdateError::DownloadFailed:
-        return detail;
+        return tr("Download failed: %1").arg(detail);
     case SelfUpdateError::ChecksumMismatch:
-        return tr("Checksum mismatch for %1. Download corrupted?").arg(detail);
+        return tr("%1 didn't download correctly. Try again.").arg(detail);
     case SelfUpdateError::ExtractFailed:
         return tr("Could not unpack the installer update.");
     case SelfUpdateError::SwapFailed:
