@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.3.1...v0.3.2) (2026-09-23)
+
+
+### Bug Fixes
+
+* simplify the user-facing texts ([eb90a38](https://github.com/brunofgmag/gsx-integrator-installer/commit/eb90a382dc020f87b8c34df5e434ec2127e43b0c))
+
 ## [0.3.1](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.3.0...v0.3.1) (2026-08-29)
 
 
