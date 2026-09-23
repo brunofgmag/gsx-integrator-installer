@@ -162,7 +162,7 @@ namespace
         case ShortcutKind::Setup:
             return {
                 SetupStartMenuShortcutPath(), UninstallerPath(),
-                QStringLiteral("Update or uninstall GSX Integrator")
+                QCoreApplication::translate("WindowsInstallerGateway", "Update or uninstall GSX Integrator")
             };
         }
 
