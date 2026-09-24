@@ -120,10 +120,10 @@ Window {
                     const latest = root.controller.clientLatest;
                     const installed = root.controller.clientInstalled;
                     if (!root.controller.clientNeedsInstall)
-                        return qsTr("GSX Integrator client: up to date (%1)").arg(installed);
+                        return qsTr("GSX Integrator: up to date (%1)").arg(installed);
                     if (installed.length > 0)
-                        return qsTr("GSX Integrator client: %1 → %2").arg(installed).arg(latest);
-                    return qsTr("GSX Integrator client: install %1").arg(latest);
+                        return qsTr("GSX Integrator: %1 → %2").arg(installed).arg(latest);
+                    return qsTr("GSX Integrator: %1 will be installed").arg(latest);
                 }
             }
 
@@ -140,12 +140,12 @@ Window {
                             text = qsTr("CommBus in %1: up to date (%2)")
                                 .arg(modelData.label).arg(modelData.installedVersion);
                         else if (!modelData.selected)
-                            text = qsTr("CommBus in %1: skipped").arg(modelData.label);
+                            text = qsTr("CommBus in %1: not selected").arg(modelData.label);
                         else if (modelData.installedVersion.length > 0)
                             text = qsTr("CommBus in %1: %2 → %3").arg(modelData.label)
                                 .arg(modelData.installedVersion).arg(root.controller.commbusLatest);
                         else
-                            text = qsTr("CommBus in %1: install %2")
+                            text = qsTr("CommBus in %1: %2 will be installed")
                                 .arg(modelData.label).arg(root.controller.commbusLatest);
                         if (modelData.running)
                             text += qsTr(" (simulator running)");
@@ -158,14 +158,14 @@ Window {
                 visible: root.controller.sims.length === 0
                 marker: "!"
                 markerColor: Theme.amber
-                label: qsTr("No MSFS installation detected. The CommBus module will be skipped.")
+                label: qsTr("No MSFS found, so CommBus won't be installed.")
             }
 
             StatusRow {
                 visible: root.controller.clientRunning
                 marker: "!"
                 markerColor: Theme.amber
-                label: qsTr("GSX Integrator is currently running.")
+                label: qsTr("GSX Integrator is open. Close it to update or uninstall.")
             }
 
             StatusRow {
@@ -201,7 +201,7 @@ Window {
                 onToggled: checked => root.controller.desktopShortcut = checked
             }
             CheckRow {
-                label: qsTr("Add the client to the Start Menu")
+                label: qsTr("Add GSX Integrator to the Start Menu")
                 checked: root.controller.clientStartMenuShortcut
                 onToggled: checked => root.controller.clientStartMenuShortcut = checked
             }
@@ -221,13 +221,6 @@ Window {
                 text: qsTr("Auto-start with the simulator")
                 color: Theme.muted
                 font.pixelSize: 12
-            }
-            Text {
-                width: parent.width
-                text: qsTr("Launch GSX Integrator automatically when the simulator starts")
-                color: Theme.faint
-                font.pixelSize: 11
-                wrapMode: Text.WordWrap
             }
             Repeater {
                 model: root.controller.autoStartOptions
@@ -262,7 +255,7 @@ Window {
                     model: root.controller.sims
 
                     CheckRow {
-                        label: qsTr("Install CommBus module in %1").arg(modelData.label)
+                        label: qsTr("Install CommBus in %1").arg(modelData.label)
                         checked: modelData.selected
                         onToggled: checked => root.controller.setSimSelected(index, checked)
                     }
@@ -296,18 +289,9 @@ Window {
                 onClicked: uninstallArea.confirming = true
             }
             Text {
-                visible: !uninstallArea.confirming
-                width: parent.width
-                text: qsTr("Removes the client and the CommBus module from all simulators")
-                color: Theme.faint
-                font.pixelSize: 11
-                wrapMode: Text.WordWrap
-            }
-
-            Text {
                 visible: uninstallArea.confirming
                 width: parent.width
-                text: qsTr("Remove GSX Integrator, the CommBus module and the auto-start entries from all simulators?")
+                text: qsTr("Remove GSX Integrator, CommBus, the shortcuts and auto-start from this PC?")
                 color: Theme.text
                 font.pixelSize: 13
                 wrapMode: Text.WordWrap
