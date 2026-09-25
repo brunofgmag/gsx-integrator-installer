@@ -387,14 +387,14 @@ void SetupViewModel::install()
 
     if (GetClientNeedsInstall() && clientRunning_)
     {
-        errorText_ = [] { return tr("Close GSX Integrator before updating it."); };
+        errorText_ = [] { return tr("Close the GSX Integrator app before updating it."); };
         emit Changed();
         return;
     }
 
     if (GetAnySimRunning())
     {
-        errorText_ = [] { return tr("Close the simulator before installing the CommBus module."); };
+        errorText_ = [] { return tr("Close the simulator to install CommBus."); };
         emit Changed();
         return;
     }
@@ -489,7 +489,7 @@ QString SetupViewModel::InstallProgressText(const InstallProgress& update)
     case InstallPhase::InstallingClient:
         return tr("Installing GSX Integrator %1").arg(update.detail);
     case InstallPhase::DownloadingCommbus:
-        return tr("Downloading %1 %2").arg(tr("CommBus module"), update.detail);
+        return tr("Downloading %1 %2").arg(tr("CommBus"), update.detail);
     case InstallPhase::InstallingCommbus:
         return tr("Installing CommBus in %1").arg(update.detail);
     case InstallPhase::ConfiguringAutoStart:
@@ -504,33 +504,32 @@ QString SetupViewModel::InstallErrorText(const InstallOutcome& outcome)
     switch (outcome.status)
     {
     case InstallStatus::ClientRunning:
-        return tr("Close GSX Integrator before updating it.");
+        return tr("Close the GSX Integrator app before updating it.");
     case InstallStatus::InstallerInsideInstallDir:
-        return tr("This installer can't update itself from the install folder. "
-            "Download it again from the releases page.");
+        return tr("This copy of the installer is inside the GSX Integrator folder, "
+            "so it can't reinstall the app. Run the installer you downloaded.");
     case InstallStatus::DownloadFailed:
         return tr("Download failed: %1").arg(outcome.detail);
     case InstallStatus::ChecksumMismatch:
-        return tr("%1 didn't download correctly. Try again.").arg(outcome.detail);
+        return tr("%1 was corrupted during download. Try again.").arg(outcome.detail);
     case InstallStatus::CleanInstallDirFailed:
-        return tr("Could not remove the previous installation at %1.").arg(outcome.detail);
+        return tr("Couldn't remove the previous installation at %1.").arg(outcome.detail);
     case InstallStatus::TarMissing:
-        return tr("Windows 10 or newer is required.");
+        return tr("Couldn't start tar.exe. Windows 10 or newer is required.");
     case InstallStatus::ExtractFailed:
         return tr("Extraction failed: %1").arg(outcome.detail);
     case InstallStatus::ClientExeMissing:
-        return tr("The release package did not contain the expected executable.");
+        return tr("The download doesn't contain the GSX Integrator app.");
     case InstallStatus::SimRunning:
-        return tr("%1 is running. Close the simulator before "
-            "installing the CommBus module.").arg(outcome.detail);
+        return tr("%1 is open. Close it to install CommBus.").arg(outcome.detail);
     case InstallStatus::CommbusReplaceFailed:
-        return tr("Could not replace the CommBus package in %1. "
-            "Is the simulator running?").arg(outcome.detail);
+        return tr("Couldn't replace CommBus in %1. "
+            "Is the simulator open?").arg(outcome.detail);
     case InstallStatus::AutoStartClientMissing:
-        return tr("The GSX Integrator client is not installed, "
-            "so auto-start could not be configured.");
+        return tr("The GSX Integrator app isn't installed, "
+            "so auto-start couldn't be set up.");
     case InstallStatus::ExeXmlUpdateFailed:
-        return tr("Could not update %1.").arg(outcome.detail);
+        return tr("Couldn't update %1.").arg(outcome.detail);
     case InstallStatus::Success:
         break;
     }
@@ -577,13 +576,13 @@ QString SetupViewModel::SelfUpdateErrorText(const SelfUpdateError kind, const QS
     case SelfUpdateError::DownloadFailed:
         return tr("Download failed: %1").arg(detail);
     case SelfUpdateError::ChecksumMismatch:
-        return tr("%1 didn't download correctly. Try again.").arg(detail);
+        return tr("%1 was corrupted during download. Try again.").arg(detail);
     case SelfUpdateError::ExtractFailed:
-        return tr("Could not unpack the installer update.");
+        return tr("Couldn't unpack the installer update.");
     case SelfUpdateError::SwapFailed:
-        return tr("Could not prepare the installer update.");
+        return tr("Couldn't prepare the installer update.");
     case SelfUpdateError::RelaunchFailed:
-        return tr("Could not start the updater. Try again.");
+        return tr("Couldn't start the updater. Try again.");
     }
 
     return {};
@@ -600,7 +599,7 @@ void SetupViewModel::uninstall()
 
     if (clientRunning_)
     {
-        errorText_ = [] { return tr("Close GSX Integrator before uninstalling it."); };
+        errorText_ = [] { return tr("Close the GSX Integrator app before uninstalling it."); };
         emit Changed();
         return;
     }

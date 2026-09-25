@@ -120,10 +120,10 @@ Window {
                     const latest = root.controller.clientLatest;
                     const installed = root.controller.clientInstalled;
                     if (!root.controller.clientNeedsInstall)
-                        return qsTr("GSX Integrator: up to date (%1)").arg(installed);
+                        return qsTr("GSX Integrator app: up to date (%1)").arg(installed);
                     if (installed.length > 0)
-                        return qsTr("GSX Integrator: %1 → %2").arg(installed).arg(latest);
-                    return qsTr("GSX Integrator: %1 will be installed").arg(latest);
+                        return qsTr("GSX Integrator app: %1 → %2").arg(installed).arg(latest);
+                    return qsTr("GSX Integrator app: %1 will be installed").arg(latest);
                 }
             }
 
@@ -148,7 +148,7 @@ Window {
                             text = qsTr("CommBus in %1: %2 will be installed")
                                 .arg(modelData.label).arg(root.controller.commbusLatest);
                         if (modelData.running)
-                            text += qsTr(" (simulator running)");
+                            text += qsTr(" (simulator open)");
                         return text;
                     }
                 }
@@ -165,14 +165,14 @@ Window {
                 visible: root.controller.clientRunning
                 marker: "!"
                 markerColor: Theme.amber
-                label: qsTr("GSX Integrator is open. Close it to update or uninstall.")
+                label: qsTr("The GSX Integrator app is open. Close it before updating or uninstalling it.")
             }
 
             StatusRow {
                 visible: root.controller.anySimRunning
                 marker: "!"
                 markerColor: Theme.amber
-                label: qsTr("A simulator is running. Close it before installing the CommBus module.")
+                label: qsTr("A simulator is open. Close it to install CommBus.")
             }
         }
 

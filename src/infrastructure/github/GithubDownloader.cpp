@@ -2,7 +2,6 @@
 
 #include <chrono>
 
-#include <QtCore/QCoreApplication>
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QEventLoop>
 #include <QtCore/QFile>
@@ -29,7 +28,7 @@ QString DownloadFile(const QUrl& url, const QString& destPath, const std::functi
     QFile file(destPath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
     {
-        return QCoreApplication::translate("GithubDownloader", "Can't write to %1").arg(destPath);
+        return QStringLiteral("Can't write to %1").arg(destPath);
     }
 
     QNetworkAccessManager nam;
