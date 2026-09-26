@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.4.0](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.3.2...v0.4.0) (2026-09-26)
+
+
+* correct the user-facing texts and keep translation in the viewmodel ([#40](https://github.com/brunofgmag/gsx-integrator-installer/issues/40)) ([c674612](https://github.com/brunofgmag/gsx-integrator-installer/commit/c674612a2c113f47f7a9126b33de382b82d63678))
+* remove only the junction when replacing the commbus package ([#34](https://github.com/brunofgmag/gsx-integrator-installer/issues/34)) ([c0520a9](https://github.com/brunofgmag/gsx-integrator-installer/commit/c0520a9c931f0b34744866f8d316f0d2454be682))
+
+
+### Features
+
+* draw the installer window with the software backend ([#25](https://github.com/brunofgmag/gsx-integrator-installer/issues/25)) ([03d058c](https://github.com/brunofgmag/gsx-integrator-installer/commit/03d058ce47284a8446ce7c5d0d4be6ba89074096))
+* stamp the installed commbus version into the package ([0b864bb](https://github.com/brunofgmag/gsx-integrator-installer/commit/0b864bb29ba7e12a7589aa19a6bc61d03f6a2687))
+
+
+### Bug Fixes
+
+* allow only one instance of the installer ([02ce4a0](https://github.com/brunofgmag/gsx-integrator-installer/commit/02ce4a02efbc26f74bd974e9c4b5312bc2e51fe6))
+* allow only one instance of the installer ([#13](https://github.com/brunofgmag/gsx-integrator-installer/issues/13)) ([8bd896a](https://github.com/brunofgmag/gsx-integrator-installer/commit/8bd896a4dc9cfe9477a530941e46f96fd7c4d1ff))
+* auto update not working ([#10](https://github.com/brunofgmag/gsx-integrator-installer/issues/10)) ([29d92e6](https://github.com/brunofgmag/gsx-integrator-installer/commit/29d92e6e400781b7068298a107ecc56b26a91898))
+* client update ([#3](https://github.com/brunofgmag/gsx-integrator-installer/issues/3)) ([20bcb41](https://github.com/brunofgmag/gsx-integrator-installer/commit/20bcb41eb202f32c9b82dbb46662e0622f57501e))
+* correct the user-facing texts and keep translation in the viewmodel ([2f8923f](https://github.com/brunofgmag/gsx-integrator-installer/commit/2f8923fcb5be17835c8bdea81c080de38e5958e6)) ([c674612](https://github.com/brunofgmag/gsx-integrator-installer/commit/c674612a2c113f47f7a9126b33de382b82d63678))
+* install client with tray param ([#20](https://github.com/brunofgmag/gsx-integrator-installer/issues/20)) ([a054475](https://github.com/brunofgmag/gsx-integrator-installer/commit/a0544757605f8901b9359d2d91ad4136d6ee3d56))
+* installer auto-update hang ([#16](https://github.com/brunofgmag/gsx-integrator-installer/issues/16)) ([11e2754](https://github.com/brunofgmag/gsx-integrator-installer/commit/11e27541c44ed1308decfd541c97f98863d7fb6b))
+* remove only the junction when replacing the commbus package ([50a0273](https://github.com/brunofgmag/gsx-integrator-installer/commit/50a02730821da134c43bdce468c53e7065bd9923)) ([c0520a9](https://github.com/brunofgmag/gsx-integrator-installer/commit/c0520a9c931f0b34744866f8d316f0d2454be682))
+* simplify the user-facing texts ([eb90a38](https://github.com/brunofgmag/gsx-integrator-installer/commit/eb90a382dc020f87b8c34df5e434ec2127e43b0c))
+
 ## [0.3.2](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.3.1...v0.3.2) (2026-09-23)
 
 
