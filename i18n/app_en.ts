@@ -2,14 +2,6 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
-    <name>GithubDownloader</name>
-    <message>
-        <location filename="../src/infrastructure/github/GithubDownloader.cpp" line="32"/>
-        <source>Can&apos;t write to %1</source>
-        <translation>Can&apos;t write to %1</translation>
-    </message>
-</context>
-<context>
     <name>LanguagePicker</name>
     <message>
         <location filename="../src/qml/components/LanguagePicker.qml" line="11"/>
@@ -50,21 +42,6 @@
         <translation>Checking simulators and latest versions…</translation>
     </message>
     <message>
-        <location filename="../src/qml/Main.qml" line="123"/>
-        <source>GSX Integrator: up to date (%1)</source>
-        <translation>GSX Integrator: up to date (%1)</translation>
-    </message>
-    <message>
-        <location filename="../src/qml/Main.qml" line="125"/>
-        <source>GSX Integrator: %1 → %2</source>
-        <translation>GSX Integrator: %1 → %2</translation>
-    </message>
-    <message>
-        <location filename="../src/qml/Main.qml" line="126"/>
-        <source>GSX Integrator: %1 will be installed</source>
-        <translation>GSX Integrator: %1 will be installed</translation>
-    </message>
-    <message>
         <location filename="../src/qml/Main.qml" line="143"/>
         <source>CommBus in %1: not selected</source>
         <translation>CommBus in %1: not selected</translation>
@@ -78,11 +55,6 @@
         <location filename="../src/qml/Main.qml" line="161"/>
         <source>No MSFS found, so CommBus won&apos;t be installed.</source>
         <translation>No MSFS found, so CommBus won&apos;t be installed.</translation>
-    </message>
-    <message>
-        <location filename="../src/qml/Main.qml" line="168"/>
-        <source>GSX Integrator is open. Close it to update or uninstall.</source>
-        <translation>GSX Integrator is open. Close it to update or uninstall.</translation>
     </message>
     <message>
         <location filename="../src/qml/Main.qml" line="204"/>
@@ -108,16 +80,6 @@
         <location filename="../src/qml/Main.qml" line="145"/>
         <source>CommBus in %1: %2 → %3</source>
         <translation>CommBus in %1: %2 → %3</translation>
-    </message>
-    <message>
-        <location filename="../src/qml/Main.qml" line="151"/>
-        <source> (simulator running)</source>
-        <translation> (simulator running)</translation>
-    </message>
-    <message>
-        <location filename="../src/qml/Main.qml" line="175"/>
-        <source>A simulator is running. Close it before installing the CommBus module.</source>
-        <translation>A simulator is running. Close it before installing the CommBus module.</translation>
     </message>
     <message>
         <location filename="../src/qml/Main.qml" line="194"/>
@@ -175,6 +137,36 @@
         <translation>✓ All set.</translation>
     </message>
     <message>
+        <location filename="../src/qml/Main.qml" line="123"/>
+        <source>GSX Integrator app: up to date (%1)</source>
+        <translation>GSX Integrator app: up to date (%1)</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/Main.qml" line="125"/>
+        <source>GSX Integrator app: %1 → %2</source>
+        <translation>GSX Integrator app: %1 → %2</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/Main.qml" line="126"/>
+        <source>GSX Integrator app: %1 will be installed</source>
+        <translation>GSX Integrator app: %1 will be installed</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/Main.qml" line="151"/>
+        <source> (simulator open)</source>
+        <translation> (simulator open)</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/Main.qml" line="168"/>
+        <source>The GSX Integrator app is open. Close it before updating or uninstalling it.</source>
+        <translation>The GSX Integrator app is open. Close it before updating or uninstalling it.</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/Main.qml" line="175"/>
+        <source>A simulator is open. Close it to install CommBus.</source>
+        <translation>A simulator is open. Close it to install CommBus.</translation>
+    </message>
+    <message>
         <location filename="../src/qml/Main.qml" line="346"/>
         <source>Open GSX Integrator</source>
         <translation>Open GSX Integrator</translation>
@@ -214,36 +206,20 @@
         <translation>Everything up to date</translation>
     </message>
     <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="390"/>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="507"/>
-        <source>Close GSX Integrator before updating it.</source>
-        <translation>Close GSX Integrator before updating it.</translation>
-    </message>
-    <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="488"/>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="492"/>
         <source>Downloading %1 %2</source>
-        <translation type="unfinished">Downloading %1 %2</translation>
+        <translation>Downloading %1 %2</translation>
     </message>
     <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="488"/>
         <source>GSX Integrator</source>
-        <translation type="unfinished">GSX Integrator</translation>
+        <translation>GSX Integrator</translation>
     </message>
     <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="490"/>
         <source>Installing GSX Integrator %1</source>
-        <translation type="unfinished">Installing GSX Integrator %1</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="492"/>
-        <source>CommBus module</source>
-        <translation type="unfinished">CommBus module</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="516"/>
-        <source>Could not remove the previous installation at %1.</source>
-        <translation type="unfinished">Could not remove the previous installation at %1.</translation>
+        <translation>Installing GSX Integrator %1</translation>
     </message>
     <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="94"/>
@@ -296,9 +272,25 @@
         <translation>MSFS 2024 only</translation>
     </message>
     <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="390"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="507"/>
+        <source>Close the GSX Integrator app before updating it.</source>
+        <translation>Close the GSX Integrator app before updating it.</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="397"/>
+        <source>Close the simulator to install CommBus.</source>
+        <translation>Close the simulator to install CommBus.</translation>
+    </message>
+    <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="450"/>
         <source>Preparing…</source>
         <translation>Preparing…</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="492"/>
+        <source>CommBus</source>
+        <translation>CommBus</translation>
     </message>
     <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="494"/>
@@ -312,80 +304,80 @@
     </message>
     <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="509"/>
-        <source>This installer can&apos;t update itself from the install folder. Download it again from the releases page.</source>
-        <translation>This installer can&apos;t update itself from the install folder. Download it again from the releases page.</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="512"/>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="578"/>
-        <source>Download failed: %1</source>
-        <translation>Download failed: %1</translation>
+        <source>This copy of the installer is inside the GSX Integrator folder, so it can&apos;t reinstall the app. Run the installer you downloaded.</source>
+        <translation>This copy of the installer is inside the GSX Integrator folder, so it can&apos;t reinstall the app. Run the installer you downloaded.</translation>
     </message>
     <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="514"/>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="580"/>
-        <source>%1 didn&apos;t download correctly. Try again.</source>
-        <translation>%1 didn&apos;t download correctly. Try again.</translation>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="579"/>
+        <source>%1 was corrupted during download. Try again.</source>
+        <translation>%1 was corrupted during download. Try again.</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="516"/>
+        <source>Couldn&apos;t remove the previous installation at %1.</source>
+        <translation>Couldn&apos;t remove the previous installation at %1.</translation>
     </message>
     <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="518"/>
-        <source>Windows 10 or newer is required.</source>
-        <translation>Windows 10 or newer is required.</translation>
+        <source>Couldn&apos;t start tar.exe. Windows 10 or newer is required.</source>
+        <translation>Couldn&apos;t start tar.exe. Windows 10 or newer is required.</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="522"/>
+        <source>The download doesn&apos;t contain the GSX Integrator app.</source>
+        <translation>The download doesn&apos;t contain the GSX Integrator app.</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="524"/>
+        <source>%1 is open. Close it to install CommBus.</source>
+        <translation>%1 is open. Close it to install CommBus.</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="526"/>
+        <source>Couldn&apos;t replace CommBus in %1. Is the simulator open?</source>
+        <translation>Couldn&apos;t replace CommBus in %1. Is the simulator open?</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="529"/>
+        <source>The GSX Integrator app isn&apos;t installed, so auto-start couldn&apos;t be set up.</source>
+        <translation>The GSX Integrator app isn&apos;t installed, so auto-start couldn&apos;t be set up.</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="532"/>
+        <source>Couldn&apos;t update %1.</source>
+        <translation>Couldn&apos;t update %1.</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="581"/>
+        <source>Couldn&apos;t unpack the installer update.</source>
+        <translation>Couldn&apos;t unpack the installer update.</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="583"/>
+        <source>Couldn&apos;t prepare the installer update.</source>
+        <translation>Couldn&apos;t prepare the installer update.</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="585"/>
+        <source>Couldn&apos;t start the updater. Try again.</source>
+        <translation>Couldn&apos;t start the updater. Try again.</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="602"/>
+        <source>Close the GSX Integrator app before uninstalling it.</source>
+        <translation>Close the GSX Integrator app before uninstalling it.</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="512"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="577"/>
+        <source>Download failed: %1</source>
+        <translation>Download failed: %1</translation>
     </message>
     <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="520"/>
         <source>Extraction failed: %1</source>
         <translation>Extraction failed: %1</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="522"/>
-        <source>The release package did not contain the expected executable.</source>
-        <translation type="unfinished">The release package did not contain the expected executable.</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="524"/>
-        <source>%1 is running. Close the simulator before installing the CommBus module.</source>
-        <translation type="unfinished">%1 is running. Close the simulator before installing the CommBus module.</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="527"/>
-        <source>Could not replace the CommBus package in %1. Is the simulator running?</source>
-        <translation type="unfinished">Could not replace the CommBus package in %1. Is the simulator running?</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="530"/>
-        <source>The GSX Integrator client is not installed, so auto-start could not be configured.</source>
-        <translation type="unfinished">The GSX Integrator client is not installed, so auto-start could not be configured.</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="533"/>
-        <source>Could not update %1.</source>
-        <translation type="unfinished">Could not update %1.</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="582"/>
-        <source>Could not unpack the installer update.</source>
-        <translation>Could not unpack the installer update.</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="584"/>
-        <source>Could not prepare the installer update.</source>
-        <translation>Could not prepare the installer update.</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="586"/>
-        <source>Could not start the updater. Try again.</source>
-        <translation>Could not start the updater. Try again.</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="603"/>
-        <source>Close GSX Integrator before uninstalling it.</source>
-        <translation>Close GSX Integrator before uninstalling it.</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="397"/>
-        <source>Close the simulator before installing the CommBus module.</source>
-        <translation>Close the simulator before installing the CommBus module.</translation>
     </message>
 </context>
 <context>
@@ -414,14 +406,6 @@
         <location filename="../src/qml/components/UpdateBanner.qml" line="90"/>
         <source>Try again</source>
         <translation>Try again</translation>
-    </message>
-</context>
-<context>
-    <name>WindowsInstallerGateway</name>
-    <message>
-        <location filename="../src/infrastructure/install/WindowsInstallerGateway.cpp" line="165"/>
-        <source>Update or uninstall GSX Integrator</source>
-        <translation>Update or uninstall GSX Integrator</translation>
     </message>
 </context>
 </TS>
