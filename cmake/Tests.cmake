@@ -59,6 +59,12 @@ gsxi_add_qt_test(gsxi-dir-copy-tests dir-copy
         src/infrastructure/install/DirCopy.cpp
         src/infrastructure/install/DirCopy.h)
 
+gsxi_add_qt_test(gsxi-release-package-tests release-package
+        tests/tst_release_package.cpp
+        src/infrastructure/install/ReleasePackage.cpp
+        src/infrastructure/install/ReleasePackage.h)
+target_link_libraries(gsxi-release-package-tests PRIVATE miniz)
+
 gsxi_add_qt_test(gsxi-install-orchestrator-tests install-orchestrator
         tests/doubles/FakeInstallerGateway.h
         tests/tst_install_orchestrator.cpp

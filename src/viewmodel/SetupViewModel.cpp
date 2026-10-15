@@ -514,10 +514,13 @@ QString SetupViewModel::InstallErrorText(const InstallOutcome& outcome)
         return tr("%1 was corrupted during download. Try again.").arg(outcome.detail);
     case InstallStatus::CleanInstallDirFailed:
         return tr("Couldn't remove the previous installation at %1.").arg(outcome.detail);
-    case InstallStatus::TarMissing:
-        return tr("Couldn't start tar.exe. Windows 10 or newer is required.");
     case InstallStatus::ExtractFailed:
         return tr("Extraction failed: %1").arg(outcome.detail);
+    case InstallStatus::ExtractUnsafeEntry:
+        return tr("The download contains a file that would be written outside the install folder: %1")
+            .arg(outcome.detail);
+    case InstallStatus::ExtractWriteFailed:
+        return tr("Couldn't write %1.").arg(outcome.detail);
     case InstallStatus::ClientExeMissing:
         return tr("The download doesn't contain the GSX Integrator app.");
     case InstallStatus::SimRunning:

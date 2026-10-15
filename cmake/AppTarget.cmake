@@ -53,6 +53,7 @@ target_link_libraries(${APP_NAME} PRIVATE
         Qt6::Quick
         Qt6::Network
         Qt6::Xml
+        miniz
         dwmapi
         ole32
         uuid

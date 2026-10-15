@@ -4,43 +4,15 @@
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
-#include <QtCore/QRegularExpression>
-#include <QtCore/QStandardPaths>
 
 #include "../github/GithubDownloader.h"
 #include "../system/InstallLocations.h"
+#include "ReleasePackage.h"
 #include "SelfUpdateScript.h"
 
 namespace
 {
     constexpr auto kPayloadDirName = "gsx-integrator-installer";
-
-    QString ReadExpectedSha(const QString& shaFilePath)
-    {
-        QFile file(shaFilePath);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            return {};
-        }
-
-        const QString content = QString::fromUtf8(file.readAll()).trimmed();
-
-        static const QRegularExpression whitespace(QStringLiteral("\\s"));
-
-        return content.section(whitespace, 0, 0).toLower();
-    }
-
-    QString TarExecutable()
-    {
-        QString systemTar = qEnvironmentVariable("SystemRoot", QStringLiteral("C:/Windows"))
-            + QStringLiteral("/System32/tar.exe");
-        if (QFile::exists(systemTar))
-        {
-            return systemTar;
-        }
-
-        return QStandardPaths::findExecutable(QStringLiteral("tar"));
-    }
 }
 
 void SelfUpdateWorker::Run(const ReleaseInfo& release)
@@ -73,34 +45,23 @@ void SelfUpdateWorker::Run(const ReleaseInfo& release)
         return;
     }
 
-    const QString expected = ReadExpectedSha(shaPath);
-
-    if (expected.isEmpty() || Sha256File(zipPath) != expected)
+    if (!Sha256Matches(zipPath, shaPath))
     {
         QDir(stagingDir).removeRecursively();
         emit failed(SelfUpdateError::ChecksumMismatch, release.zipName);
         return;
     }
 
-    QProcess tar;
-    tar.start(TarExecutable(),
-              {
-                  QStringLiteral("-xf"), QDir::toNativeSeparators(zipPath),
-                  QStringLiteral("-C"), QDir::toNativeSeparators(stagingDir)
-              });
-
-    const bool extracted = tar.waitForStarted(5000)
-        && (tar.waitForFinished(-1), tar.exitStatus() == QProcess::NormalExit && tar.exitCode() == 0);
+    const ExtractResult extract = ExtractZip(zipPath, stagingDir);
 
     QFile::remove(zipPath);
 
     const QString payloadDir = stagingDir + u'/' + QLatin1String(kPayloadDirName);
 
-    if (!extracted || !QFile::exists(payloadDir + u'/' + QLatin1String(kInstallerExeName)))
+    if (!extract.ok() || !QFile::exists(payloadDir + u'/' + QLatin1String(kInstallerExeName)))
     {
-        const QString detail = QString::fromLocal8Bit(tar.readAllStandardError()).trimmed();
         QDir(stagingDir).removeRecursively();
-        emit failed(SelfUpdateError::ExtractFailed, detail);
+        emit failed(SelfUpdateError::ExtractFailed, extract.detail);
         return;
     }
 

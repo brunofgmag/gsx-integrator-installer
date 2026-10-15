@@ -320,8 +320,13 @@
     </message>
     <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="518"/>
-        <source>Couldn&apos;t start tar.exe. Windows 10 or newer is required.</source>
-        <translation>Não foi possível iniciar o tar.exe. É necessário o Windows 10 ou mais recente.</translation>
+        <source>The download contains a file that would be written outside the install folder: %1</source>
+        <translation>O download contém um arquivo que seria gravado fora da pasta de instalação: %1</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="518"/>
+        <source>Couldn&apos;t write %1.</source>
+        <translation>Não foi possível gravar %1.</translation>
     </message>
     <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="522"/>

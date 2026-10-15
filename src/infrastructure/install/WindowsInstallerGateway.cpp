@@ -5,10 +5,8 @@
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QProcess>
-#include <QtCore/QRegularExpression>
 #include <QtCore/QScopeGuard>
 #include <QtCore/QSettings>
-#include <QtCore/QStandardPaths>
 
 #include <windows.h>
 #include <ole2.h>
@@ -20,62 +18,28 @@
 #include "../system/SimDetection.h"
 #include "DirCopy.h"
 #include "ExeXml.h"
+#include "ReleasePackage.h"
 #include "RemovalScript.h"
 
 namespace
 {
-    QString TarExecutable()
+    InstallOutcome ExtractZipTo(const QString& zipPath, const QString& destDir)
     {
-        QString systemTar = qEnvironmentVariable("SystemRoot", QStringLiteral("C:/Windows"))
-            + QStringLiteral("/System32/tar.exe");
-        if (QFile::exists(systemTar))
+        const ExtractResult result = ExtractZip(zipPath, destDir);
+        switch (result.status)
         {
-            return systemTar;
-        }
-
-        return QStandardPaths::findExecutable(QStringLiteral("tar"));
-    }
-
-    InstallOutcome ExtractZipTo(const QString& zipPath, const QString& destParent)
-    {
-        QProcess tar;
-        tar.start(TarExecutable(),
-                  {
-                      QStringLiteral("-xf"), QDir::toNativeSeparators(zipPath),
-                      QStringLiteral("-C"), QDir::toNativeSeparators(destParent)
-                  });
-
-        if (!tar.waitForStarted(5000))
-        {
-            return {InstallStatus::TarMissing, {}};
-        }
-
-        tar.waitForFinished(-1);
-
-        if (tar.exitStatus() != QProcess::NormalExit || tar.exitCode() != 0)
-        {
-            return {
-                InstallStatus::ExtractFailed,
-                QString::fromLocal8Bit(tar.readAllStandardError()).trimmed()
-            };
-        }
-
-        return {};
-    }
-
-    QString ReadExpectedSha(const QString& shaFilePath)
-    {
-        QFile file(shaFilePath);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
+        case ExtractStatus::Success:
             return {};
+        case ExtractStatus::UnsafeEntry:
+            return {InstallStatus::ExtractUnsafeEntry, result.detail};
+        case ExtractStatus::WriteFailed:
+            return {InstallStatus::ExtractWriteFailed, result.detail};
+        case ExtractStatus::OpenFailed:
+        case ExtractStatus::InvalidArchive:
+            break;
         }
 
-        const QString content = QString::fromUtf8(file.readAll()).trimmed();
-
-        static const QRegularExpression whitespace(QStringLiteral("\\s"));
-
-        return content.section(whitespace, 0, 0).toLower();
+        return {InstallStatus::ExtractFailed, result.detail};
     }
 
     bool CreateShortcutFile(const QString& lnkPath, const QString& targetPath,
@@ -229,8 +193,7 @@ DownloadResult WindowsInstallerGateway::DownloadRelease(
         return {InstallStatus::DownloadFailed, error, {}};
     }
 
-    const QString expected = ReadExpectedSha(shaPath);
-    if (expected.isEmpty() || Sha256File(zipPath) != expected)
+    if (!Sha256Matches(zipPath, shaPath))
     {
         return {InstallStatus::ChecksumMismatch, release.zipName, {}};
     }

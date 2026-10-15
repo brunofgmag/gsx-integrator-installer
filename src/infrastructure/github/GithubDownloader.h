@@ -9,6 +9,4 @@ QString DownloadFile(const QUrl& url,
                      const QString& destPath,
                      const std::function<void(qint64, qint64)>& progress = {});
 
-QString Sha256File(const QString& path);
-
 #endif

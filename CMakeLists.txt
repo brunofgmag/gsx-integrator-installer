@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(gsx-integrator-installer LANGUAGES CXX)
+project(gsx-integrator-installer LANGUAGES C CXX)
 
 include(cmake/ProjectOptions.cmake)
 include(cmake/Dependencies.cmake)
