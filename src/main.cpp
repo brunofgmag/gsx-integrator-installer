@@ -55,7 +55,14 @@ int main(int argc, char* argv[])
                 return 1;
             }
 
-            InstallOrchestrator(gateway).RunUninstall();
+            const UninstallOutcome outcome = InstallOrchestrator(gateway).RunUninstall();
+            if (!outcome.ok())
+            {
+                MessageBoxW(nullptr, SetupViewModel::UninstallErrorText(outcome).toStdWString().c_str(),
+                            L"GSX Integrator", MB_OK | MB_ICONWARNING);
+                return 1;
+            }
+
             MessageBoxW(nullptr, L"GSX Integrator was removed.", L"GSX Integrator",
                         MB_OK | MB_ICONINFORMATION);
             return 0;

@@ -14,6 +14,7 @@
 #include "application/ports/SystemInspector.h"
 #include "domain/model/ReleaseInfo.h"
 #include "domain/model/SimInstall.h"
+#include "domain/model/UninstallOutcome.h"
 
 class SetupViewModel final : public QObject,
                              public ReleaseProviderObserver,
@@ -71,6 +72,8 @@ public:
     Q_INVOKABLE void setSimSelected(int index, bool selected);
     Q_INVOKABLE void openClient() const;
     Q_INVOKABLE void uninstall();
+
+    static QString UninstallErrorText(const UninstallOutcome& outcome);
 
     [[nodiscard]] QString GetState() const { return state_; }
     [[nodiscard]] QString GetErrorText() const { return errorText_ ? errorText_() : QString(); }

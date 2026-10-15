@@ -25,9 +25,9 @@ public:
     [[nodiscard]] bool ExeXmlAdd(const QString& exeXmlPath) override;
     [[nodiscard]] bool ExeXmlRemove(const QString& exeXmlPath) override;
 
-    [[nodiscard]] QStringList DetectedCommbusPackageDirs() const override;
+    [[nodiscard]] QList<CommbusPackage> DetectedCommbusPackages() const override;
     [[nodiscard]] QStringList AllExeXmlPaths() const override;
-    bool RemoveDirRecursively(const QString& dir) override;
+    [[nodiscard]] bool RemoveDirRecursively(const QString& dir) override;
     void RemoveShortcut(ShortcutKind kind) override;
     void RemoveUninstallRegistryEntry() override;
     void ScheduleInstallDirRemoval() override;

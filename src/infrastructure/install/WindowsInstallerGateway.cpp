@@ -286,19 +286,19 @@ bool WindowsInstallerGateway::ExeXmlRemove(const QString& exeXmlPath)
     return ::ExeXmlRemove(exeXmlPath, QLatin1String(kClientExeName));
 }
 
-QStringList WindowsInstallerGateway::DetectedCommbusPackageDirs() const
+QList<CommbusPackage> WindowsInstallerGateway::DetectedCommbusPackages() const
 {
-    QStringList dirs;
+    QList<CommbusPackage> packages;
     for (const SimInstall& sim : DetectSims())
     {
         const QString packageDir = sim.communityPath + u'/' + QLatin1String(kCommbusPackageName);
         if (QDir(packageDir).exists())
         {
-            dirs.append(packageDir);
+            packages.append({packageDir, sim.processName, sim.label});
         }
     }
 
-    return dirs;
+    return packages;
 }
 
 QStringList WindowsInstallerGateway::AllExeXmlPaths() const
@@ -308,7 +308,7 @@ QStringList WindowsInstallerGateway::AllExeXmlPaths() const
 
 bool WindowsInstallerGateway::RemoveDirRecursively(const QString& dir)
 {
-    return QDir(dir).removeRecursively();
+    return RemoveExistingPackageDir(dir);
 }
 
 void WindowsInstallerGateway::RemoveShortcut(const ShortcutKind kind)

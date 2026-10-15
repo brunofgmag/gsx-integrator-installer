@@ -38,7 +38,7 @@ public:
     void SetObserver(InstallServiceObserver* observer) override;
     void Install(const InstallRequest& request) override;
     void LaunchClient() override;
-    void Uninstall() override;
+    [[nodiscard]] UninstallOutcome Uninstall() override;
 
 signals:
     void InstallRequested(const InstallRequest& request);

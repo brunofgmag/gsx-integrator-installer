@@ -191,16 +191,39 @@ InstallOutcome InstallOrchestrator::ConfigureAutoStart(const InstallRequest& req
     return {};
 }
 
-void InstallOrchestrator::RunUninstall() const
+UninstallOutcome InstallOrchestrator::RunUninstall() const
 {
-    for (const QString& dir : gateway_.DetectedCommbusPackageDirs())
+    const QList<CommbusPackage> packages = gateway_.DetectedCommbusPackages();
+
+    for (const CommbusPackage& package : packages)
     {
-        gateway_.RemoveDirRecursively(dir);
+        if (gateway_.IsProcessRunning(package.processName))
+        {
+            return {UninstallStatus::SimRunning, package.label, {}};
+        }
+    }
+
+    QStringList leftovers;
+
+    for (const CommbusPackage& package : packages)
+    {
+        if (!gateway_.RemoveDirRecursively(package.packageDir))
+        {
+            leftovers.append(package.packageDir);
+        }
     }
 
     for (const QString& exeXmlPath : gateway_.AllExeXmlPaths())
     {
-        static_cast<void>(gateway_.ExeXmlRemove(exeXmlPath));
+        if (!gateway_.ExeXmlRemove(exeXmlPath))
+        {
+            leftovers.append(exeXmlPath);
+        }
+    }
+
+    if (!leftovers.isEmpty())
+    {
+        return {UninstallStatus::LeftoversRemain, {}, leftovers};
     }
 
     gateway_.RemoveShortcut(ShortcutKind::ClientStartMenu);
@@ -208,4 +231,6 @@ void InstallOrchestrator::RunUninstall() const
     gateway_.RemoveShortcut(ShortcutKind::Setup);
     gateway_.RemoveUninstallRegistryEntry();
     gateway_.ScheduleInstallDirRemoval();
+
+    return {};
 }

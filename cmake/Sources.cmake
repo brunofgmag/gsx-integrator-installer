@@ -3,6 +3,7 @@ set(DOMAIN_SOURCES
         src/domain/model/SimInstall.h
         src/domain/model/InstallRequest.h
         src/domain/model/InstallOutcome.h
+        src/domain/model/UninstallOutcome.h
         src/domain/Versions.cpp
         src/domain/Versions.h
 )
@@ -42,9 +43,9 @@ set(INFRASTRUCTURE_SOURCES
         src/infrastructure/install/SelfUpdateScript.h
         src/infrastructure/install/DirCopy.cpp
         src/infrastructure/install/DirCopy.h
-        src/infrastructure/install/WindowsInstallerGateway.cpp
         src/infrastructure/install/ReleasePackage.cpp
         src/infrastructure/install/ReleasePackage.h
+        src/infrastructure/install/WindowsInstallerGateway.cpp
         src/infrastructure/install/WindowsInstallerGateway.h
         src/infrastructure/install/EngineInstallService.cpp
         src/infrastructure/install/EngineInstallService.h

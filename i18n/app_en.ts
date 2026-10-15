@@ -309,7 +309,7 @@
     </message>
     <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="514"/>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="579"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="582"/>
         <source>%1 was corrupted during download. Try again.</source>
         <translation>%1 was corrupted during download. Try again.</translation>
     </message>
@@ -319,68 +319,80 @@
         <translation>Couldn&apos;t remove the previous installation at %1.</translation>
     </message>
     <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="518"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="520"/>
         <source>The download contains a file that would be written outside the install folder: %1</source>
         <translation>The download contains a file that would be written outside the install folder: %1</translation>
     </message>
     <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="518"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="523"/>
         <source>Couldn&apos;t write %1.</source>
         <translation>Couldn&apos;t write %1.</translation>
     </message>
     <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="522"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="631"/>
+        <source>%1 is open. Close it before uninstalling.</source>
+        <translation>%1 is open. Close it before uninstalling.</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="633"/>
+        <source>Couldn&apos;t remove everything, so GSX Integrator is still installed. Close anything that is using these and try again:
+%1</source>
+        <translation>Couldn&apos;t remove everything, so GSX Integrator is still installed. Close anything that is using these and try again:
+%1</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="525"/>
         <source>The download doesn&apos;t contain the GSX Integrator app.</source>
         <translation>The download doesn&apos;t contain the GSX Integrator app.</translation>
     </message>
     <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="524"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="527"/>
         <source>%1 is open. Close it to install CommBus.</source>
         <translation>%1 is open. Close it to install CommBus.</translation>
     </message>
     <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="526"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="529"/>
         <source>Couldn&apos;t replace CommBus in %1. Is the simulator open?</source>
         <translation>Couldn&apos;t replace CommBus in %1. Is the simulator open?</translation>
     </message>
     <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="529"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="532"/>
         <source>The GSX Integrator app isn&apos;t installed, so auto-start couldn&apos;t be set up.</source>
         <translation>The GSX Integrator app isn&apos;t installed, so auto-start couldn&apos;t be set up.</translation>
     </message>
     <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="532"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="535"/>
         <source>Couldn&apos;t update %1.</source>
         <translation>Couldn&apos;t update %1.</translation>
     </message>
     <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="581"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="584"/>
         <source>Couldn&apos;t unpack the installer update.</source>
         <translation>Couldn&apos;t unpack the installer update.</translation>
     </message>
     <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="583"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="586"/>
         <source>Couldn&apos;t prepare the installer update.</source>
         <translation>Couldn&apos;t prepare the installer update.</translation>
     </message>
     <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="585"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="588"/>
         <source>Couldn&apos;t start the updater. Try again.</source>
         <translation>Couldn&apos;t start the updater. Try again.</translation>
     </message>
     <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="602"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="605"/>
         <source>Close the GSX Integrator app before uninstalling it.</source>
         <translation>Close the GSX Integrator app before uninstalling it.</translation>
     </message>
     <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="512"/>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="577"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="580"/>
         <source>Download failed: %1</source>
         <translation>Download failed: %1</translation>
     </message>
     <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="520"/>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="518"/>
         <source>Extraction failed: %1</source>
         <translation>Extraction failed: %1</translation>
     </message>

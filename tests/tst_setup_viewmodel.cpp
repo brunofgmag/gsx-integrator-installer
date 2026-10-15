@@ -68,6 +68,9 @@ private slots:
     static void shortcutTogglesPersistAndRestoreAcrossSessions();
     static void uninstallRunsAndEntersUninstalledState();
     static void uninstallBlockedWhileClientIsRunning();
+    static void uninstallRefusedBySimulatorShowsErrorInsteadOfRemoved();
+    static void uninstallLeftoversAreListedAndScreenDoesNotSayRemoved();
+    static void uninstallErrorRetranslatesWhenLanguageChanges();
     static void setLanguagePersistsAndSignals();
     static void errorTextRetranslatesWhenLanguageChanges();
     static void installerUpdateAvailableWhenNewerReleaseExists();
@@ -409,6 +412,72 @@ void SetupViewModelTest::uninstallBlockedWhileClientIsRunning()
     QCOMPARE(install.uninstallCount, 0);
     QVERIFY(!vm.GetErrorText().isEmpty());
     QVERIFY(vm.GetState() != QStringLiteral("uninstalled"));
+}
+
+void SetupViewModelTest::uninstallRefusedBySimulatorShowsErrorInsteadOfRemoved()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    install.uninstallOutcome = {UninstallStatus::SimRunning, QStringLiteral("MSFS 2024"), {}};
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.uninstall();
+
+    QCOMPARE(install.uninstallCount, 1);
+    QVERIFY(vm.GetState() != QStringLiteral("uninstalled"));
+    QVERIFY(vm.GetErrorText().contains(QStringLiteral("MSFS 2024")));
+    QVERIFY(vm.GetErrorText().contains(QStringLiteral("uninstalling")));
+}
+
+void SetupViewModelTest::uninstallLeftoversAreListedAndScreenDoesNotSayRemoved()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    install.uninstallOutcome = {
+        UninstallStatus::LeftoversRemain,
+        {},
+        {QStringLiteral("E:/Flight Simulator 2024/Community/gsx-integrator-commbus"), QStringLiteral("C:/a/EXE.xml")}
+    };
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    const QSignalSpy changed(&vm, &SetupViewModel::Changed);
+    vm.uninstall();
+
+    QVERIFY(vm.GetState() != QStringLiteral("uninstalled"));
+    QVERIFY(vm.GetErrorText().contains(QStringLiteral("E:/Flight Simulator 2024/Community/gsx-integrator-commbus")));
+    QVERIFY(vm.GetErrorText().contains(QStringLiteral("C:/a/EXE.xml")));
+    QVERIFY(vm.GetErrorText().contains(QStringLiteral("still installed")));
+    QVERIFY(!changed.isEmpty());
+}
+
+void SetupViewModelTest::uninstallErrorRetranslatesWhenLanguageChanges()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    install.uninstallOutcome = {UninstallStatus::SimRunning, QStringLiteral("MSFS 2024"), {}};
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.uninstall();
+
+    QVERIFY(!vm.GetErrorText().startsWith(QStringLiteral("[xx] ")));
+
+    StubTranslator stub;
+
+    QVERIFY(QCoreApplication::installTranslator(&stub));
+
+    const QString after = vm.GetErrorText();
+    QCoreApplication::removeTranslator(&stub);
+
+    QVERIFY(after.startsWith(QStringLiteral("[xx] ")));
 }
 
 void SetupViewModelTest::setLanguagePersistsAndSignals()

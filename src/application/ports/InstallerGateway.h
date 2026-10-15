@@ -2,6 +2,7 @@
 #define GSX_INTEGRATOR_INSTALLER_APPLICATION_PORTS_INSTALLERGATEWAY_H
 
 #include <functional>
+#include <QtCore/QList>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include "../../domain/model/InstallOutcome.h"
@@ -19,6 +20,13 @@ struct DownloadResult
     InstallStatus status = InstallStatus::Success;
     QString detail;
     QString zipPath;
+};
+
+struct CommbusPackage
+{
+    QString packageDir;
+    QString processName;
+    QString label;
 };
 
 class InstallerGateway
@@ -45,9 +53,9 @@ public:
     [[nodiscard]] virtual bool ExeXmlAdd(const QString& exeXmlPath) = 0;
     [[nodiscard]] virtual bool ExeXmlRemove(const QString& exeXmlPath) = 0;
 
-    [[nodiscard]] virtual QStringList DetectedCommbusPackageDirs() const = 0;
+    [[nodiscard]] virtual QList<CommbusPackage> DetectedCommbusPackages() const = 0;
     [[nodiscard]] virtual QStringList AllExeXmlPaths() const = 0;
-    virtual bool RemoveDirRecursively(const QString& dir) = 0;
+    [[nodiscard]] virtual bool RemoveDirRecursively(const QString& dir) = 0;
     virtual void RemoveShortcut(ShortcutKind kind) = 0;
     virtual void RemoveUninstallRegistryEntry() = 0;
     virtual void ScheduleInstallDirRemoval() = 0;

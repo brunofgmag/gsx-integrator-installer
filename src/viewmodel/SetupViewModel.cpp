@@ -608,8 +608,34 @@ void SetupViewModel::uninstall()
     }
 
     errorText_ = nullptr;
-    install_->Uninstall();
+
+    const UninstallOutcome outcome = install_->Uninstall();
+    if (!outcome.ok())
+    {
+        RefreshInstalledVersions();
+        errorText_ = [outcome] { return UninstallErrorText(outcome); };
+        emit Changed();
+        return;
+    }
+
     state_ = QStringLiteral("uninstalled");
 
     emit Changed();
+}
+
+QString SetupViewModel::UninstallErrorText(const UninstallOutcome& outcome)
+{
+    switch (outcome.status)
+    {
+    case UninstallStatus::SimRunning:
+        return tr("%1 is open. Close it before uninstalling.").arg(outcome.detail);
+    case UninstallStatus::LeftoversRemain:
+        return tr("Couldn't remove everything, so GSX Integrator is still installed. "
+            "Close anything that is using these and try again:\n%1")
+            .arg(outcome.leftovers.join(u'\n'));
+    case UninstallStatus::Success:
+        break;
+    }
+
+    return {};
 }

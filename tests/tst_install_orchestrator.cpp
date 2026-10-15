@@ -18,6 +18,10 @@ private slots:
     static void appliesShortcutsWithWantedFlags();
     static void updatesExeXmlTargets();
     static void uninstallRunsFullSequence();
+    static void uninstallRefusedWhenSimRunningRemovesNothing();
+    static void uninstallIgnoresRunningSimWithoutTheModule();
+    static void uninstallReportsPackageThatCouldNotBeRemoved();
+    static void uninstallReportsExeXmlThatCouldNotBeRemoved();
 };
 
 void InstallOrchestratorTest::abortsWhenClientRunning()
@@ -171,17 +175,94 @@ void InstallOrchestratorTest::updatesExeXmlTargets()
 void InstallOrchestratorTest::uninstallRunsFullSequence()
 {
     FakeInstallerGateway gateway;
-    gateway.commbusPackageDirs << QStringLiteral("C:/Community/gsx-integrator-commbus");
+    gateway.commbusPackages << CommbusPackage{
+        QStringLiteral("C:/Community/gsx-integrator-commbus"), QStringLiteral("FlightSimulator.exe"),
+        QStringLiteral("MSFS 2020")
+    };
     gateway.exeXmlPaths << QStringLiteral("C:/a/EXE.xml") << QStringLiteral("C:/b/EXE.xml");
 
-    InstallOrchestrator(gateway).RunUninstall();
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
 
+    QVERIFY(result.ok());
+    QVERIFY(result.leftovers.isEmpty());
     QVERIFY(gateway.calls.contains(QStringLiteral("removeDir:C:/Community/gsx-integrator-commbus")));
     QVERIFY(gateway.calls.contains(QStringLiteral("exeXmlRemove:C:/a/EXE.xml")));
     QVERIFY(gateway.calls.contains(QStringLiteral("exeXmlRemove:C:/b/EXE.xml")));
     QVERIFY(gateway.calls.contains(QStringLiteral("removeRegistry")));
     QVERIFY(gateway.calls.contains(QStringLiteral("scheduleRemoval")));
     QVERIFY(gateway.calls.contains(QStringLiteral("removeShortcut:%1").arg(static_cast<int>(ShortcutKind::Desktop))));
+}
+
+void InstallOrchestratorTest::uninstallRefusedWhenSimRunningRemovesNothing()
+{
+    FakeInstallerGateway gateway;
+    gateway.commbusPackages
+        << CommbusPackage{QStringLiteral("C:/2020/gsx-integrator-commbus"), QStringLiteral("FlightSimulator.exe"),
+                          QStringLiteral("MSFS 2020")}
+        << CommbusPackage{QStringLiteral("C:/2024/gsx-integrator-commbus"),
+                          QStringLiteral("FlightSimulator2024.exe"), QStringLiteral("MSFS 2024")};
+    gateway.exeXmlPaths << QStringLiteral("C:/a/EXE.xml");
+    gateway.runningProcesses.insert(QStringLiteral("FlightSimulator2024.exe"));
+
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
+
+    QVERIFY(!result.ok());
+    QCOMPARE(result.status, UninstallStatus::SimRunning);
+    QCOMPARE(result.detail, QStringLiteral("MSFS 2024"));
+    QVERIFY(result.leftovers.isEmpty());
+    QVERIFY(gateway.calls.isEmpty());
+}
+
+void InstallOrchestratorTest::uninstallIgnoresRunningSimWithoutTheModule()
+{
+    FakeInstallerGateway gateway;
+    gateway.commbusPackages << CommbusPackage{
+        QStringLiteral("C:/2020/gsx-integrator-commbus"), QStringLiteral("FlightSimulator.exe"),
+        QStringLiteral("MSFS 2020")
+    };
+    gateway.runningProcesses.insert(QStringLiteral("FlightSimulator2024.exe"));
+
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
+
+    QVERIFY(result.ok());
+    QVERIFY(gateway.calls.contains(QStringLiteral("removeDir:C:/2020/gsx-integrator-commbus")));
+}
+
+void InstallOrchestratorTest::uninstallReportsPackageThatCouldNotBeRemoved()
+{
+    FakeInstallerGateway gateway;
+    gateway.commbusPackages
+        << CommbusPackage{QStringLiteral("C:/2020/gsx-integrator-commbus"), QStringLiteral("FlightSimulator.exe"),
+                          QStringLiteral("MSFS 2020")}
+        << CommbusPackage{QStringLiteral("C:/2024/gsx-integrator-commbus"),
+                          QStringLiteral("FlightSimulator2024.exe"), QStringLiteral("MSFS 2024")};
+    gateway.undeletableDirs.insert(QStringLiteral("C:/2020/gsx-integrator-commbus"));
+
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
+
+    QVERIFY(!result.ok());
+    QCOMPARE(result.status, UninstallStatus::LeftoversRemain);
+    QCOMPARE(result.leftovers, QStringList{QStringLiteral("C:/2020/gsx-integrator-commbus")});
+    QVERIFY(gateway.calls.contains(QStringLiteral("removeDir:C:/2024/gsx-integrator-commbus")));
+    QVERIFY(!gateway.calls.contains(QStringLiteral("removeRegistry")));
+    QVERIFY(!gateway.calls.contains(QStringLiteral("scheduleRemoval")));
+    QVERIFY(!gateway.calls.contains(
+        QStringLiteral("removeShortcut:%1").arg(static_cast<int>(ShortcutKind::Desktop))));
+}
+
+void InstallOrchestratorTest::uninstallReportsExeXmlThatCouldNotBeRemoved()
+{
+    FakeInstallerGateway gateway;
+    gateway.exeXmlPaths << QStringLiteral("C:/a/EXE.xml");
+    gateway.exeXmlRemoveOk = false;
+
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
+
+    QVERIFY(!result.ok());
+    QCOMPARE(result.status, UninstallStatus::LeftoversRemain);
+    QCOMPARE(result.leftovers, QStringList{QStringLiteral("C:/a/EXE.xml")});
+    QVERIFY(!gateway.calls.contains(QStringLiteral("removeRegistry")));
+    QVERIFY(!gateway.calls.contains(QStringLiteral("scheduleRemoval")));
 }
 
 QTEST_GUILESS_MAIN(InstallOrchestratorTest)

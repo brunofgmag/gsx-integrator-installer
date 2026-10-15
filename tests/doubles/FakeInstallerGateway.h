@@ -20,7 +20,8 @@ public:
     bool prepareOk = true;
     bool exeXmlAddOk = true;
     bool exeXmlRemoveOk = true;
-    QStringList commbusPackageDirs;
+    QList<CommbusPackage> commbusPackages;
+    QSet<QString> undeletableDirs;
     QStringList exeXmlPaths;
 
     mutable QStringList calls;
@@ -95,13 +96,13 @@ public:
         return exeXmlRemoveOk;
     }
 
-    QStringList DetectedCommbusPackageDirs() const override { return commbusPackageDirs; }
+    QList<CommbusPackage> DetectedCommbusPackages() const override { return commbusPackages; }
     QStringList AllExeXmlPaths() const override { return exeXmlPaths; }
 
     bool RemoveDirRecursively(const QString& dir) override
     {
         calls << QStringLiteral("removeDir:%1").arg(dir);
-        return true;
+        return !undeletableDirs.contains(dir);
     }
 
     void RemoveShortcut(ShortcutKind kind) override

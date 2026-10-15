@@ -51,11 +51,11 @@ void EngineInstallService::LaunchClient()
     QProcess::startDetached(ClientExePath(), {}, ClientInstallDir());
 }
 
-void EngineInstallService::Uninstall()
+UninstallOutcome EngineInstallService::Uninstall()
 {
     WindowsInstallerGateway gateway;
     InstallOrchestrator orchestrator(gateway);
-    orchestrator.RunUninstall();
+    return orchestrator.RunUninstall();
 }
 
 void EngineInstallService::OnProgress(const InstallProgress& update) const
