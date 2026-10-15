@@ -162,6 +162,13 @@ Window {
             }
 
             StatusRow {
+                visible: root.controller.simSearchNote.length > 0
+                marker: "·"
+                markerColor: Theme.faint
+                label: root.controller.simSearchNote
+            }
+
+            StatusRow {
                 visible: root.controller.clientRunning
                 marker: "!"
                 markerColor: Theme.amber
@@ -201,12 +208,12 @@ Window {
                 onToggled: checked => root.controller.desktopShortcut = checked
             }
             CheckRow {
-                label: qsTr("Add GSX Integrator to the Start Menu")
+                label: root.controller.clientMenuShortcutLabel
                 checked: root.controller.clientStartMenuShortcut
                 onToggled: checked => root.controller.clientStartMenuShortcut = checked
             }
             CheckRow {
-                label: qsTr("Add this installer to the Start Menu")
+                label: root.controller.setupMenuShortcutLabel
                 checked: root.controller.setupShortcut
                 onToggled: checked => root.controller.setupShortcut = checked
             }
@@ -222,10 +229,19 @@ Window {
                 color: Theme.muted
                 font.pixelSize: 12
             }
+            Text {
+                visible: !root.controller.autoStartAvailable
+                width: parent.width
+                text: root.controller.autoStartNotice
+                color: Theme.amber
+                font.pixelSize: 12
+                wrapMode: Text.WordWrap
+            }
             Repeater {
                 model: root.controller.autoStartOptions
 
                 RadioRow {
+                    enabled: root.controller.autoStartAvailable
                     label: modelData.label
                     checked: root.controller.autoStartMode === modelData.value
                     onSelected: root.controller.autoStartMode = modelData.value

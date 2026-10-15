@@ -43,6 +43,11 @@ class SetupViewModel final : public QObject,
     Q_PROPERTY(bool forceReinstall READ GetForceReinstall WRITE SetForceReinstall NOTIFY Changed)
     Q_PROPERTY(int autoStartMode READ GetAutoStartMode WRITE SetAutoStartMode NOTIFY Changed)
     Q_PROPERTY(QVariantList autoStartOptions READ GetAutoStartOptions NOTIFY Changed)
+    Q_PROPERTY(bool autoStartAvailable READ GetAutoStartAvailable NOTIFY Changed)
+    Q_PROPERTY(QString autoStartNotice READ GetAutoStartNotice NOTIFY Changed)
+    Q_PROPERTY(QString clientMenuShortcutLabel READ GetClientMenuShortcutLabel NOTIFY Changed)
+    Q_PROPERTY(QString setupMenuShortcutLabel READ GetSetupMenuShortcutLabel NOTIFY Changed)
+    Q_PROPERTY(QString simSearchNote READ GetSimSearchNote NOTIFY Changed)
     Q_PROPERTY(QString installerVersion READ GetInstallerVersion CONSTANT)
     Q_PROPERTY(bool installerUpdateAvailable READ GetInstallerUpdateAvailable NOTIFY Changed)
     Q_PROPERTY(QString installerLatest READ GetInstallerLatest NOTIFY Changed)
@@ -100,6 +105,11 @@ public:
     [[nodiscard]] int GetAutoStartMode() const { return autoStartMode_; }
     void SetAutoStartMode(int value);
     [[nodiscard]] QVariantList GetAutoStartOptions() const;
+    [[nodiscard]] bool GetAutoStartAvailable() const { return autoStartAvailable_; }
+    [[nodiscard]] static QString GetAutoStartNotice();
+    [[nodiscard]] static QString GetClientMenuShortcutLabel();
+    [[nodiscard]] static QString GetSetupMenuShortcutLabel();
+    [[nodiscard]] QString GetSimSearchNote() const;
     static QString GetInstallerVersion() { return QStringLiteral(GSXI_INSTALLER_VERSION); }
     [[nodiscard]] bool GetInstallerUpdateAvailable() const;
     [[nodiscard]] QString GetInstallerLatest() const { return installerRelease_.version; }
@@ -176,6 +186,8 @@ private:
     bool setupShortcut_ = true;
     bool forceReinstall_ = false;
     int autoStartMode_ = kAutoStartNoChange;
+    bool autoStartAvailable_ = true;
+    QStringList simSearchLocations_;
     QString language_;
 
     QTimer runningPollTimer_;

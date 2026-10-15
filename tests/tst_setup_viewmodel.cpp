@@ -78,6 +78,13 @@ private slots:
     static void selfUpdateStartsOnceWhileUpdating();
     static void selfUpdateRecoversAfterFailure();
     static void installBlockedWhileSelfUpdating();
+    static void selfUpdateOutsideAnAppImageSaysWhy();
+    static void selfUpdateInAnUnwritableFolderNamesTheFolder();
+    static void autoStartIsLockedWithANoticeWhenSystemdIsMissing();
+    static void autoStartStaysOpenWhenSystemdIsThere();
+    static void emptySimListSaysWhereItLooked();
+    static void foundSimsHideTheSearchNote();
+    static void menuShortcutLabelsNameThePlatformMenu();
 };
 
 void SetupViewModelTest::fetchFailureEntersErrorState()
@@ -626,6 +633,117 @@ void SetupViewModelTest::installBlockedWhileSelfUpdating()
 
     vm.install();
     QCOMPARE(install.installCount, 0);
+}
+
+void SetupViewModelTest::selfUpdateOutsideAnAppImageSaysWhy()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.OnSelfUpdateFailed(SelfUpdateError::NotAnAppImage, QString());
+
+    QCOMPARE(vm.GetInstallerUpdateState(), QStringLiteral("error"));
+    QVERIFY(vm.GetInstallerUpdateError().contains(QStringLiteral("AppImage")));
+}
+
+void SetupViewModelTest::selfUpdateInAnUnwritableFolderNamesTheFolder()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.OnSelfUpdateFailed(SelfUpdateError::AppImageDirNotWritable, QStringLiteral("/opt/apps"));
+
+    QCOMPARE(vm.GetInstallerUpdateState(), QStringLiteral("error"));
+    QVERIFY(vm.GetInstallerUpdateError().contains(QStringLiteral("/opt/apps")));
+}
+
+void SetupViewModelTest::autoStartIsLockedWithANoticeWhenSystemdIsMissing()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    inspector.autoStartAvailable = false;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.refresh();
+    vm.SetAutoStartMode(SetupViewModel::kAutoStartDisable);
+
+    QVERIFY(!vm.GetAutoStartAvailable());
+    QVERIFY(vm.GetAutoStartNotice().contains(QStringLiteral("systemd")));
+    QCOMPARE(vm.GetAutoStartMode(), static_cast<int>(SetupViewModel::kAutoStartNoChange));
+}
+
+void SetupViewModelTest::autoStartStaysOpenWhenSystemdIsThere()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.refresh();
+    vm.SetAutoStartMode(SetupViewModel::kAutoStartDisable);
+
+    QVERIFY(vm.GetAutoStartAvailable());
+    QCOMPARE(vm.GetAutoStartMode(), static_cast<int>(SetupViewModel::kAutoStartDisable));
+}
+
+void SetupViewModelTest::emptySimListSaysWhereItLooked()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    inspector.searchLocations = {QStringLiteral("/home/a/.steam/steam/steamapps"), QStringLiteral("/mnt/games/steamapps")};
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.refresh();
+
+    QVERIFY(vm.GetSimSearchNote().contains(QStringLiteral("/home/a/.steam/steam/steamapps")));
+    QVERIFY(vm.GetSimSearchNote().contains(QStringLiteral("/mnt/games/steamapps")));
+}
+
+void SetupViewModelTest::foundSimsHideTheSearchNote()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    inspector.searchLocations = {QStringLiteral("/home/a/.steam/steam/steamapps")};
+    inspector.sims = {
+        MakeSim(QStringLiteral("s24"), QStringLiteral("/c"), QStringLiteral("FlightSimulator2024.exe"),
+                QStringLiteral("/x"), 2024)
+    };
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.refresh();
+
+    QVERIFY(vm.GetSimSearchNote().isEmpty());
+}
+
+void SetupViewModelTest::menuShortcutLabelsNameThePlatformMenu()
+{
+#ifdef Q_OS_WIN
+    const QString expected = QStringLiteral("Start Menu");
+#else
+    const QString expected = QStringLiteral("applications menu");
+#endif
+
+    QVERIFY(SetupViewModel::GetClientMenuShortcutLabel().contains(expected));
+    QVERIFY(SetupViewModel::GetSetupMenuShortcutLabel().contains(expected));
 }
 
 QTEST_GUILESS_MAIN(SetupViewModelTest)

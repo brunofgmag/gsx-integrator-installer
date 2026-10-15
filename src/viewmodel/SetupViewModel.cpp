@@ -53,6 +53,9 @@ void SetupViewModel::refresh()
     clientStartMenuShortcut_ = saved.clientStartMenuShortcut;
     setupShortcut_ = saved.setupShortcut;
 
+    autoStartAvailable_ = inspector_->AutoStartAvailable();
+    simSearchLocations_ = inspector_->SimSearchLocations();
+
     sims_.clear();
     for (const SimInstall& sim : inspector_->DetectSims())
     {
@@ -285,8 +288,46 @@ QVariantList SetupViewModel::GetAutoStartOptions() const
 
 void SetupViewModel::SetAutoStartMode(const int value)
 {
+    if (!autoStartAvailable_)
+    {
+        return;
+    }
+
     autoStartMode_ = value;
     emit Changed();
+}
+
+QString SetupViewModel::GetAutoStartNotice()
+{
+    return tr("Auto-start needs systemd user services, and they aren't available on this system.");
+}
+
+QString SetupViewModel::GetClientMenuShortcutLabel()
+{
+#ifdef Q_OS_WIN
+    return tr("Add GSX Integrator to the Start Menu");
+#else
+    return tr("Add GSX Integrator to the applications menu");
+#endif
+}
+
+QString SetupViewModel::GetSetupMenuShortcutLabel()
+{
+#ifdef Q_OS_WIN
+    return tr("Add this installer to the Start Menu");
+#else
+    return tr("Add this installer to the applications menu");
+#endif
+}
+
+QString SetupViewModel::GetSimSearchNote() const
+{
+    if (!sims_.isEmpty() || simSearchLocations_.isEmpty())
+    {
+        return {};
+    }
+
+    return tr("Looked in: %1").arg(simSearchLocations_.join(QStringLiteral(", ")));
 }
 
 void SetupViewModel::setSimSelected(const int index, const bool selected)
@@ -586,6 +627,12 @@ QString SetupViewModel::SelfUpdateErrorText(const SelfUpdateError kind, const QS
         return tr("Couldn't prepare the installer update.");
     case SelfUpdateError::RelaunchFailed:
         return tr("Couldn't start the updater. Try again.");
+    case SelfUpdateError::NotAnAppImage:
+        return tr("This installer wasn't started from an AppImage, so it can't replace itself. "
+            "Download the new AppImage and run that one.");
+    case SelfUpdateError::AppImageDirNotWritable:
+        return tr("This installer can't write to %1, so it can't replace itself. "
+            "Move the AppImage to a folder you can write to.").arg(detail);
     }
 
     return {};

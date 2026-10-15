@@ -1,7 +1,18 @@
 #include <cstring>
 
-#include <windows.h>
+#include <QtCore/QtGlobal>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#else
+#include <cstdio>
+
+#include <unistd.h>
+
+#include <QtCore/QLockFile>
+#endif
+
+#include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QLocale>
 #include <QtCore/QSize>
@@ -17,17 +28,144 @@
 #include "application/install/InstallOrchestrator.h"
 #include "infrastructure/github/GithubReleaseProvider.h"
 #include "infrastructure/install/EngineInstallService.h"
-#include "infrastructure/install/WindowsInstallerGateway.h"
-#include "infrastructure/install/WindowsSelfUpdateService.h"
-#include "infrastructure/platform/WindowsTitleBar.h"
+#include "infrastructure/platform/PlatformTypes.h"
 #include "infrastructure/settings/QSettingsRepository.h"
-#include "infrastructure/system/WindowsSystemInspector.h"
 #include "viewmodel/SetupViewModel.h"
+
+#ifdef Q_OS_WIN
+#include "infrastructure/platform/WindowsTitleBar.h"
+#endif
+
+namespace
+{
+#ifdef Q_OS_WIN
+    bool AcquireSingleInstance()
+    {
+        CreateMutexW(nullptr, FALSE, L"Local\\gsx-integrator-installer.single-instance");
+        return GetLastError() != ERROR_ALREADY_EXISTS;
+    }
+
+    int RunUninstallCommand(int argc, char* argv[])
+    {
+        const QCoreApplication app(argc, argv);
+        const int choice = MessageBoxW(
+            nullptr,
+            L"Remove GSX Integrator, the CommBus module and the EXE.xml auto-start entries "
+            L"from all simulators?",
+            L"GSX Integrator", MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2);
+        if (choice != IDYES)
+        {
+            return 0;
+        }
+
+        WindowsInstallerGateway gateway;
+        if (gateway.IsClientRunning())
+        {
+            MessageBoxW(nullptr, L"Close GSX Integrator first, then run the uninstaller again.",
+                        L"GSX Integrator", MB_OK | MB_ICONWARNING);
+            return 1;
+        }
+
+        const UninstallOutcome outcome = InstallOrchestrator(gateway).RunUninstall();
+        if (!outcome.ok())
+        {
+            MessageBoxW(nullptr, SetupViewModel::UninstallErrorText(outcome).toStdWString().c_str(),
+                        L"GSX Integrator", MB_OK | MB_ICONWARNING);
+            return 1;
+        }
+
+        MessageBoxW(nullptr, L"GSX Integrator was removed.", L"GSX Integrator",
+                    MB_OK | MB_ICONINFORMATION);
+        return 0;
+    }
+#else
+    QLockFile& InstanceLock()
+    {
+        static QLockFile lock(
+            (qEnvironmentVariableIsEmpty("XDG_RUNTIME_DIR") ? QDir::tempPath()
+                                                            : qEnvironmentVariable("XDG_RUNTIME_DIR"))
+            + QStringLiteral("/gsx-integrator-installer-%1.lock").arg(getuid()));
+        return lock;
+    }
+
+    bool AcquireSingleInstance()
+    {
+        InstanceLock().setStaleLockTime(0);
+        return InstanceLock().tryLock(0);
+    }
+
+    enum class UninstallAnswer
+    {
+        Yes,
+        No,
+        NoTerminal,
+    };
+
+    UninstallAnswer ConfirmUninstall(int argc, char* argv[])
+    {
+        for (int i = 1; i < argc; ++i)
+        {
+            if (std::strcmp(argv[i], "--yes") == 0)
+            {
+                return UninstallAnswer::Yes;
+            }
+        }
+
+        if (!isatty(STDIN_FILENO))
+        {
+            std::fputs("Run the uninstaller from a terminal, or pass --yes to skip the question.\n", stderr);
+            return UninstallAnswer::NoTerminal;
+        }
+
+        std::fputs("Remove GSX Integrator, the CommBus module and the auto-start service "
+                   "from all simulators? [y/N] ", stdout);
+        std::fflush(stdout);
+
+        char buffer[16] = {};
+        if (!std::fgets(buffer, sizeof(buffer), stdin))
+        {
+            return UninstallAnswer::No;
+        }
+
+        return buffer[0] == 'y' || buffer[0] == 'Y' ? UninstallAnswer::Yes : UninstallAnswer::No;
+    }
+
+    int RunUninstallCommand(int argc, char* argv[])
+    {
+        const QCoreApplication app(argc, argv);
+        switch (ConfirmUninstall(argc, argv))
+        {
+        case UninstallAnswer::Yes:
+            break;
+        case UninstallAnswer::No:
+            return 0;
+        case UninstallAnswer::NoTerminal:
+            return 2;
+        }
+
+        LinuxInstallerGateway gateway;
+        if (gateway.IsClientRunning())
+        {
+            std::fputs("Close GSX Integrator first, then run the uninstaller again.\n", stderr);
+            return 1;
+        }
+
+        const UninstallOutcome outcome = InstallOrchestrator(gateway).RunUninstall();
+        if (!outcome.ok())
+        {
+            std::fprintf(stderr, "%s\n", SetupViewModel::UninstallErrorText(outcome).toUtf8().constData());
+            return 1;
+        }
+
+        std::fputs("GSX Integrator was removed.\n", stdout);
+        return 0;
+    }
+#endif
+}
 
 int main(int argc, char* argv[])
 {
-    CreateMutexW(nullptr, FALSE, L"Local\\gsx-integrator-installer.single-instance");
-    if (GetLastError() == ERROR_ALREADY_EXISTS)
+    if (!AcquireSingleInstance())
     {
         return 0;
     }
@@ -36,36 +174,7 @@ int main(int argc, char* argv[])
     {
         if (std::strcmp(argv[i], "--uninstall") == 0)
         {
-            const QCoreApplication app(argc, argv);
-            const int choice = MessageBoxW(
-                nullptr,
-                L"Remove GSX Integrator, the CommBus module and the EXE.xml auto-start entries "
-                L"from all simulators?",
-                L"GSX Integrator", MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2);
-            if (choice != IDYES)
-            {
-                return 0;
-            }
-
-            WindowsInstallerGateway gateway;
-            if (gateway.IsClientRunning())
-            {
-                MessageBoxW(nullptr, L"Close GSX Integrator first, then run the uninstaller again.",
-                            L"GSX Integrator", MB_OK | MB_ICONWARNING);
-                return 1;
-            }
-
-            const UninstallOutcome outcome = InstallOrchestrator(gateway).RunUninstall();
-            if (!outcome.ok())
-            {
-                MessageBoxW(nullptr, SetupViewModel::UninstallErrorText(outcome).toStdWString().c_str(),
-                            L"GSX Integrator", MB_OK | MB_ICONWARNING);
-                return 1;
-            }
-
-            MessageBoxW(nullptr, L"GSX Integrator was removed.", L"GSX Integrator",
-                        MB_OK | MB_ICONINFORMATION);
-            return 0;
+            return RunUninstallCommand(argc, argv);
         }
     }
 
@@ -75,6 +184,9 @@ int main(int argc, char* argv[])
     QGuiApplication::setApplicationName(QStringLiteral("gsx-integrator-installer"));
     QGuiApplication::setApplicationDisplayName(QStringLiteral("GSX Integrator Installer"));
     QGuiApplication::setApplicationVersion(QStringLiteral(GSXI_INSTALLER_VERSION));
+#ifdef Q_OS_LINUX
+    QGuiApplication::setDesktopFileName(QStringLiteral("gsx-integrator-installer"));
+#endif
 
     QFont monoFont(QStringLiteral("Cascadia Mono"));
     monoFont.setStyleHint(QFont::Monospace);
@@ -115,10 +227,10 @@ int main(int argc, char* argv[])
 
     QGuiApplication::setWindowIcon(appIcon);
 
-    WindowsSystemInspector inspector;
+    PlatformSystemInspector inspector;
     GithubReleaseProvider releaseProvider;
     EngineInstallService installService;
-    WindowsSelfUpdateService selfUpdateService;
+    PlatformSelfUpdateService selfUpdateService;
     SetupViewModel controller(&settingsRepository, &releaseProvider, &inspector, &installService,
                               &selfUpdateService);
 
@@ -146,6 +258,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+#ifdef Q_OS_WIN
     if (auto* rootWindow = qobject_cast<QWindow*>(engine.rootObjects().first()))
     {
         const auto applyTitleBar = [rootWindow]
@@ -159,6 +272,7 @@ int main(int argc, char* argv[])
         QObject::connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged,
                          rootWindow, applyTitleBar);
     }
+#endif
 
     return QGuiApplication::exec();
 }
