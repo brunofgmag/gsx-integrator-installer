@@ -7,6 +7,15 @@
 #include <QtCore/QVersionNumber>
 #include "domain/Versions.h"
 
+QString ProgramAssetExtension()
+{
+#ifdef Q_OS_WIN
+    return QStringLiteral(".zip");
+#else
+    return QStringLiteral("-x86_64.AppImage");
+#endif
+}
+
 ReleaseInfo ParseLatestRelease(const QByteArray& json, const QString& assetPrefix, const QString& extension)
 {
     ReleaseInfo info;
