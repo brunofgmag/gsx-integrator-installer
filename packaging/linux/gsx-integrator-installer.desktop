@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=GSX Integrator Installer
+Comment=Install, update and remove GSX Integrator and its CommBus module
+Exec=gsx-integrator-installer
+Icon=gsx-integrator-installer
+Terminal=false
+Categories=Utility;
