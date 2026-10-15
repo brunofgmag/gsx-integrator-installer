@@ -18,6 +18,8 @@ public:
     [[nodiscard]] bool SetupStartMenuShortcutExists() const override;
 
     [[nodiscard]] QStringList CandidateExeXmlPaths(int generation) const override;
+    [[nodiscard]] bool AutoStartAvailable() const override;
+    [[nodiscard]] QStringList SimSearchLocations() const override;
 };
 
 #endif

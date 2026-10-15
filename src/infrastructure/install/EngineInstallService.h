@@ -6,7 +6,7 @@
 #include <QtCore/QThread>
 #include "../../application/install/InstallOrchestrator.h"
 #include "../../application/ports/InstallService.h"
-#include "WindowsInstallerGateway.h"
+#include "../platform/PlatformTypes.h"
 
 class InstallWorker final : public QObject
 {
@@ -23,7 +23,7 @@ signals:
     void finished(const InstallOutcome& outcome);
 
 private:
-    WindowsInstallerGateway gateway_;
+    PlatformInstallerGateway gateway_;
     InstallOrchestrator orchestrator_{gateway_};
 };
 

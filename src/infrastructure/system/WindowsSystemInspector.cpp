@@ -1,7 +1,7 @@
 #include "WindowsSystemInspector.h"
 
 #include <QtCore/QFile>
-#include "../../domain/Versions.h"
+#include "../install/PackageFiles.h"
 #include "InstallLocations.h"
 #include "SimDetection.h"
 
@@ -22,26 +22,7 @@ QList<SimInstall> WindowsSystemInspector::DetectSims() const
 
 QString WindowsSystemInspector::InstalledCommbusVersion(const QString& communityPath) const
 {
-    const QString packageDir = communityPath + u'/' + QLatin1String(kCommbusPackageName);
-
-    QFile marker(packageDir + u'/' + QLatin1String(kCommbusVersionMarker));
-    if (marker.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        const QString version = QString::fromUtf8(marker.readAll()).trimmed();
-        if (!version.isEmpty())
-        {
-            return version;
-        }
-    }
-
-    QFile file(packageDir + QStringLiteral("/manifest.json"));
-
-    if (!file.open(QIODevice::ReadOnly))
-    {
-        return {};
-    }
-
-    return ParsePackageVersion(file.readAll());
+    return ReadInstalledCommbusVersion(communityPath);
 }
 
 bool WindowsSystemInspector::IsSimRunning(const QString& processName) const
@@ -67,4 +48,14 @@ bool WindowsSystemInspector::SetupStartMenuShortcutExists() const
 QStringList WindowsSystemInspector::CandidateExeXmlPaths(const int generation) const
 {
     return ::CandidateExeXmlPaths(generation);
+}
+
+bool WindowsSystemInspector::AutoStartAvailable() const
+{
+    return true;
+}
+
+QStringList WindowsSystemInspector::SimSearchLocations() const
+{
+    return {};
 }

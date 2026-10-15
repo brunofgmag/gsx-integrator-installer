@@ -13,35 +13,15 @@
 #include <shlguid.h>
 #include <shobjidl_core.h>
 
-#include "../github/GithubDownloader.h"
 #include "../system/InstallLocations.h"
 #include "../system/SimDetection.h"
 #include "DirCopy.h"
 #include "ExeXml.h"
-#include "ReleasePackage.h"
+#include "PackageFiles.h"
 #include "RemovalScript.h"
 
 namespace
 {
-    InstallOutcome ExtractZipTo(const QString& zipPath, const QString& destDir)
-    {
-        const ExtractResult result = ExtractZip(zipPath, destDir);
-        switch (result.status)
-        {
-        case ExtractStatus::Success:
-            return {};
-        case ExtractStatus::UnsafeEntry:
-            return {InstallStatus::ExtractUnsafeEntry, result.detail};
-        case ExtractStatus::WriteFailed:
-            return {InstallStatus::ExtractWriteFailed, result.detail};
-        case ExtractStatus::OpenFailed:
-        case ExtractStatus::InvalidArchive:
-            break;
-        }
-
-        return {InstallStatus::ExtractFailed, result.detail};
-    }
-
     bool CreateShortcutFile(const QString& lnkPath, const QString& targetPath,
                             const QString& workingDir, const QString& description)
     {
@@ -71,31 +51,6 @@ namespace
         link->Release();
 
         return ok;
-    }
-
-    bool RemoveExistingPackageDir(const QString& packageDir)
-    {
-        const QFileInfo entry(packageDir);
-        if (entry.isJunction() || entry.isSymbolicLink())
-        {
-            return QDir().rmdir(packageDir);
-        }
-
-        if (!QDir(packageDir).exists())
-        {
-            return true;
-        }
-
-        return QDir(packageDir).removeRecursively();
-    }
-
-    void WriteCommbusVersionMarker(const QString& packageDir, const QString& version)
-    {
-        QFile marker(packageDir + u'/' + QLatin1String(kCommbusVersionMarker));
-        if (marker.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
-        {
-            marker.write(version.toUtf8());
-        }
     }
 
     QString MaintenanceDir()
@@ -169,36 +124,7 @@ QString WindowsInstallerGateway::ClientInstallDir() const
 DownloadResult WindowsInstallerGateway::DownloadRelease(
     const ReleaseInfo& release, const std::function<void(double)>& onFraction)
 {
-    const QString tempDir = QDir::tempPath() + QStringLiteral("/gsx-integrator-installer");
-    (void)QDir().mkpath(tempDir);
-    const QString zipPath = tempDir + u'/' + release.zipName;
-
-    QString error = DownloadFile(release.zipUrl, zipPath,
-                                 [&](const qint64 received, const qint64 total)
-                                 {
-                                     if (onFraction && total > 0)
-                                     {
-                                         onFraction(static_cast<double>(received) / static_cast<double>(total));
-                                     }
-                                 });
-    if (!error.isEmpty())
-    {
-        return {InstallStatus::DownloadFailed, error, {}};
-    }
-
-    const QString shaPath = zipPath + QStringLiteral(".sha256");
-    error = DownloadFile(release.shaUrl, shaPath);
-    if (!error.isEmpty())
-    {
-        return {InstallStatus::DownloadFailed, error, {}};
-    }
-
-    if (!Sha256Matches(zipPath, shaPath))
-    {
-        return {InstallStatus::ChecksumMismatch, release.zipName, {}};
-    }
-
-    return {InstallStatus::Success, {}, zipPath};
+    return DownloadVerifiedRelease(release, onFraction);
 }
 
 bool WindowsInstallerGateway::PrepareCleanInstallDir()
@@ -288,17 +214,7 @@ bool WindowsInstallerGateway::ExeXmlRemove(const QString& exeXmlPath)
 
 QList<CommbusPackage> WindowsInstallerGateway::DetectedCommbusPackages() const
 {
-    QList<CommbusPackage> packages;
-    for (const SimInstall& sim : DetectSims())
-    {
-        const QString packageDir = sim.communityPath + u'/' + QLatin1String(kCommbusPackageName);
-        if (QDir(packageDir).exists())
-        {
-            packages.append({packageDir, sim.processName, sim.label});
-        }
-    }
-
-    return packages;
+    return FindInstalledCommbusPackages();
 }
 
 QStringList WindowsInstallerGateway::AllExeXmlPaths() const

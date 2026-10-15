@@ -23,6 +23,8 @@ public:
     [[nodiscard]] virtual bool SetupStartMenuShortcutExists() const = 0;
 
     [[nodiscard]] virtual QStringList CandidateExeXmlPaths(int generation) const = 0;
+    [[nodiscard]] virtual bool AutoStartAvailable() const = 0;
+    [[nodiscard]] virtual QStringList SimSearchLocations() const = 0;
 };
 
 #endif

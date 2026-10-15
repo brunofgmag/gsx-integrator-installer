@@ -15,6 +15,8 @@ public:
     QHash<QString, bool> running;
     bool desktop = false, clientStartMenu = false, setupStartMenu = false;
     QHash<int, QStringList> candidateExeXml;
+    bool autoStartAvailable = true;
+    QStringList searchLocations;
 
     [[nodiscard]] QString InstalledClientVersion() const override { return clientVersion; }
     [[nodiscard]] bool IsClientRunning() const override { return clientRunning; }
@@ -34,6 +36,9 @@ public:
     {
         return candidateExeXml.value(generation);
     }
+
+    [[nodiscard]] bool AutoStartAvailable() const override { return autoStartAvailable; }
+    [[nodiscard]] QStringList SimSearchLocations() const override { return searchLocations; }
 };
 
 #endif // GSX_INTEGRATOR_INSTALLER_TESTS_FAKESYSTEMINSPECTOR_H

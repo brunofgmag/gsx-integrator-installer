@@ -10,6 +10,8 @@ enum class SelfUpdateError
     ExtractFailed,
     SwapFailed,
     RelaunchFailed,
+    NotAnAppImage,
+    AppImageDirNotWritable,
 };
 
 class SelfUpdateObserver

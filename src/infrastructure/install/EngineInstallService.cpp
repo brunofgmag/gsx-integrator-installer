@@ -1,6 +1,5 @@
 #include "EngineInstallService.h"
 
-#include <QtCore/QProcess>
 #include "../system/InstallLocations.h"
 
 void InstallWorker::Run(const InstallRequest& request)
@@ -48,12 +47,12 @@ void EngineInstallService::Install(const InstallRequest& request)
 
 void EngineInstallService::LaunchClient()
 {
-    QProcess::startDetached(ClientExePath(), {}, ClientInstallDir());
+    (void)StartClientProcess();
 }
 
 UninstallOutcome EngineInstallService::Uninstall()
 {
-    WindowsInstallerGateway gateway;
+    PlatformInstallerGateway gateway;
     InstallOrchestrator orchestrator(gateway);
     return orchestrator.RunUninstall();
 }
