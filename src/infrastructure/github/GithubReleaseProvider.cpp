@@ -43,9 +43,11 @@ void GithubReleaseProvider::FetchLatest()
     commbus_ = {};
     installer_ = {};
     pending_ = 3;
-    FetchOne(&client_, QLatin1String(kClientRepo), QLatin1String(kClientAssetPrefix));
+    FetchOne(&client_, QLatin1String(kClientRepo), QLatin1String(kClientAssetPrefix),
+             ProgramAssetExtension());
     FetchOne(&commbus_, QLatin1String(kCommbusRepo), QLatin1String(kCommbusAssetPrefix));
-    FetchOne(&installer_, QLatin1String(kInstallerRepo), QLatin1String(kInstallerAssetPrefix));
+    FetchOne(&installer_, QLatin1String(kInstallerRepo), QLatin1String(kInstallerAssetPrefix),
+             ProgramAssetExtension());
 }
 
 void GithubReleaseProvider::FetchOne(ReleaseInfo* target, const QString& repo,

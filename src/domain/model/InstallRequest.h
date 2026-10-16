@@ -20,10 +20,10 @@ struct InstallRequest
     ReleaseInfo commbusRelease;
     QList<CommbusTarget> commbusTargets;
     bool desktopShortcut = true;
-    bool clientStartMenuShortcut = true;
+    bool clientMenuShortcut = true;
     bool setupShortcut = true;
-    QStringList exeXmlAddTargets;
-    QStringList exeXmlRemoveTargets;
+    QStringList autoStartAddTargets;
+    QStringList autoStartRemoveTargets;
 };
 
 #endif

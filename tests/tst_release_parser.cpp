@@ -11,6 +11,9 @@ class ReleaseParserTest final : public QObject
 private slots:
     static void findsBothAssets();
     static void parsesInstallerExeRelease();
+    static void windowsZipIsWhatTheDefaultPicksWhenTheReleaseAlsoHasAnAppImage();
+    static void appImagePairIsWhatTheProgramExtensionPicksOnLinux();
+    static void releaseWithOnlyTheOtherPlatformPairIsInvalid();
     static void missingShaIsInvalid();
     static void garbageIsInvalid();
 };
@@ -26,8 +29,8 @@ void ReleaseParserTest::findsBothAssets()
 
     QVERIFY(info.valid);
     QCOMPARE(info.version, QStringLiteral("0.2.0"));
-    QCOMPARE(info.zipName, QStringLiteral("gsx-integrator-client-0.2.0.zip"));
-    QCOMPARE(info.zipUrl, QUrl(QStringLiteral("https://example.com/client.zip")));
+    QCOMPARE(info.assetName, QStringLiteral("gsx-integrator-client-0.2.0.zip"));
+    QCOMPARE(info.assetUrl, QUrl(QStringLiteral("https://example.com/client.zip")));
     QCOMPARE(info.shaUrl, QUrl(QStringLiteral("https://example.com/client.zip.sha256")));
 }
 
@@ -42,9 +45,60 @@ void ReleaseParserTest::parsesInstallerExeRelease()
 
     QVERIFY(info.valid);
     QCOMPARE(info.version, QStringLiteral("1.0.0"));
-    QCOMPARE(info.zipName, QStringLiteral("gsx-integrator-installer-1.0.0.exe"));
-    QCOMPARE(info.zipUrl, QUrl(QStringLiteral("https://example.com/installer.exe")));
+    QCOMPARE(info.assetName, QStringLiteral("gsx-integrator-installer-1.0.0.exe"));
+    QCOMPARE(info.assetUrl, QUrl(QStringLiteral("https://example.com/installer.exe")));
     QCOMPARE(info.shaUrl, QUrl(QStringLiteral("https://example.com/installer.exe.sha256")));
+}
+
+namespace
+{
+    constexpr auto kMixedRelease =
+        R"({"tag_name": "v1.50.0", "assets": [)"
+        R"({"name": "gsx-integrator-client-1.50.0.zip", "browser_download_url": "https://example.com/c.zip"},)"
+        R"({"name": "gsx-integrator-client-1.50.0.zip.sha256", "browser_download_url": "https://example.com/c.zip.sha256"},)"
+        R"({"name": "gsx-integrator-client-1.50.0-x86_64.AppImage", "browser_download_url": "https://example.com/c.AppImage"},)"
+        R"({"name": "gsx-integrator-client-1.50.0-x86_64.AppImage.sha256", "browser_download_url": "https://example.com/c.AppImage.sha256"},)"
+        R"({"name": "gsx-integrator-flightsim-to-1.50.0.zip", "browser_download_url": "https://example.com/f.zip"}]})";
+}
+
+void ReleaseParserTest::windowsZipIsWhatTheDefaultPicksWhenTheReleaseAlsoHasAnAppImage()
+{
+    const ReleaseInfo info = ParseLatestRelease(kMixedRelease, QStringLiteral("gsx-integrator-client"));
+
+    QVERIFY(info.valid);
+    QCOMPARE(info.assetName, QStringLiteral("gsx-integrator-client-1.50.0.zip"));
+    QCOMPARE(info.shaUrl, QUrl(QStringLiteral("https://example.com/c.zip.sha256")));
+}
+
+void ReleaseParserTest::appImagePairIsWhatTheProgramExtensionPicksOnLinux()
+{
+#ifdef Q_OS_WIN
+    QCOMPARE(ProgramAssetExtension(), QStringLiteral(".zip"));
+#else
+    QCOMPARE(ProgramAssetExtension(), QStringLiteral("-x86_64.AppImage"));
+
+    const ReleaseInfo info = ParseLatestRelease(kMixedRelease, QStringLiteral("gsx-integrator-client"),
+                                                ProgramAssetExtension());
+
+    QVERIFY(info.valid);
+    QCOMPARE(info.assetName, QStringLiteral("gsx-integrator-client-1.50.0-x86_64.AppImage"));
+    QCOMPARE(info.assetUrl, QUrl(QStringLiteral("https://example.com/c.AppImage")));
+    QCOMPARE(info.shaUrl, QUrl(QStringLiteral("https://example.com/c.AppImage.sha256")));
+#endif
+}
+
+void ReleaseParserTest::releaseWithOnlyTheOtherPlatformPairIsInvalid()
+{
+    const QByteArray windowsOnly =
+        R"({"tag_name": "v1.0.0", "assets": [)"
+        R"({"name": "gsx-integrator-installer-1.0.0.zip", "browser_download_url": "https://example.com/i.zip"},)"
+        R"({"name": "gsx-integrator-installer-1.0.0.zip.sha256", "browser_download_url": "https://example.com/i.zip.sha256"}]})";
+
+    const ReleaseInfo info = ParseLatestRelease(windowsOnly, QStringLiteral("gsx-integrator-installer"),
+                                                QStringLiteral("-x86_64.AppImage"));
+
+    QVERIFY(!info.valid);
+    QCOMPARE(info.errorKind, ReleaseError::MissingAsset);
 }
 
 void ReleaseParserTest::missingShaIsInvalid()

@@ -14,10 +14,12 @@ public:
     [[nodiscard]] bool IsSimRunning(const QString& processName) const override;
 
     [[nodiscard]] bool DesktopShortcutExists() const override;
-    [[nodiscard]] bool ClientStartMenuShortcutExists() const override;
-    [[nodiscard]] bool SetupStartMenuShortcutExists() const override;
+    [[nodiscard]] bool ClientMenuShortcutExists() const override;
+    [[nodiscard]] bool SetupMenuShortcutExists() const override;
 
-    [[nodiscard]] QStringList CandidateExeXmlPaths(int generation) const override;
+    [[nodiscard]] QStringList CandidateAutoStartConfigPaths(int generation) const override;
+    [[nodiscard]] bool AutoStartAvailable() const override;
+    [[nodiscard]] QStringList SimSearchLocations() const override;
 };
 
 #endif

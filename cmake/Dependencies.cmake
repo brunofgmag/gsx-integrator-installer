@@ -8,6 +8,8 @@ if (NOT CMAKE_PREFIX_PATH AND EXISTS "C:/Qt")
     endif ()
 endif ()
 
+add_subdirectory(third_party/miniz)
+
 find_package(Qt6 6.8 REQUIRED COMPONENTS Quick Network Xml LinguistTools)
 qt_standard_project_setup(REQUIRES 6.8)
 set(CMAKE_AUTORCC ON)

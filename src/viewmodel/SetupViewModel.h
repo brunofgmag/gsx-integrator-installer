@@ -14,6 +14,7 @@
 #include "application/ports/SystemInspector.h"
 #include "domain/model/ReleaseInfo.h"
 #include "domain/model/SimInstall.h"
+#include "domain/model/UninstallOutcome.h"
 
 class SetupViewModel final : public QObject,
                              public ReleaseProviderObserver,
@@ -36,12 +37,17 @@ class SetupViewModel final : public QObject,
     Q_PROPERTY(QString progressText READ GetProgressText NOTIFY Changed)
     Q_PROPERTY(double progressValue READ GetProgressValue NOTIFY Changed)
     Q_PROPERTY(bool desktopShortcut READ GetDesktopShortcut WRITE SetDesktopShortcut NOTIFY Changed)
-    Q_PROPERTY(bool clientStartMenuShortcut READ GetClientStartMenuShortcut
-        WRITE SetClientStartMenuShortcut NOTIFY Changed)
+    Q_PROPERTY(bool clientMenuShortcut READ GetClientMenuShortcut
+        WRITE SetClientMenuShortcut NOTIFY Changed)
     Q_PROPERTY(bool setupShortcut READ GetSetupShortcut WRITE SetSetupShortcut NOTIFY Changed)
     Q_PROPERTY(bool forceReinstall READ GetForceReinstall WRITE SetForceReinstall NOTIFY Changed)
     Q_PROPERTY(int autoStartMode READ GetAutoStartMode WRITE SetAutoStartMode NOTIFY Changed)
     Q_PROPERTY(QVariantList autoStartOptions READ GetAutoStartOptions NOTIFY Changed)
+    Q_PROPERTY(bool autoStartAvailable READ GetAutoStartAvailable NOTIFY Changed)
+    Q_PROPERTY(QString autoStartNotice READ GetAutoStartNotice NOTIFY Changed)
+    Q_PROPERTY(QString clientMenuShortcutLabel READ GetClientMenuShortcutLabel NOTIFY Changed)
+    Q_PROPERTY(QString setupMenuShortcutLabel READ GetSetupMenuShortcutLabel NOTIFY Changed)
+    Q_PROPERTY(QString simSearchNote READ GetSimSearchNote NOTIFY Changed)
     Q_PROPERTY(QString installerVersion READ GetInstallerVersion CONSTANT)
     Q_PROPERTY(bool installerUpdateAvailable READ GetInstallerUpdateAvailable NOTIFY Changed)
     Q_PROPERTY(QString installerLatest READ GetInstallerLatest NOTIFY Changed)
@@ -72,6 +78,10 @@ public:
     Q_INVOKABLE void openClient() const;
     Q_INVOKABLE void uninstall();
 
+    void BeginUninstallConfirmation();
+
+    static QString UninstallErrorText(const UninstallOutcome& outcome);
+
     [[nodiscard]] QString GetState() const { return state_; }
     [[nodiscard]] QString GetErrorText() const { return errorText_ ? errorText_() : QString(); }
     [[nodiscard]] QString GetClientInstalled() const { return clientInstalled_; }
@@ -88,8 +98,8 @@ public:
     [[nodiscard]] double GetProgressValue() const { return progressValue_; }
     [[nodiscard]] bool GetDesktopShortcut() const { return desktopShortcut_; }
     void SetDesktopShortcut(bool value);
-    [[nodiscard]] bool GetClientStartMenuShortcut() const { return clientStartMenuShortcut_; }
-    void SetClientStartMenuShortcut(bool value);
+    [[nodiscard]] bool GetClientMenuShortcut() const { return clientMenuShortcut_; }
+    void SetClientMenuShortcut(bool value);
     [[nodiscard]] bool GetSetupShortcut() const { return setupShortcut_; }
     void SetSetupShortcut(bool value);
     [[nodiscard]] bool GetForceReinstall() const { return forceReinstall_; }
@@ -97,6 +107,11 @@ public:
     [[nodiscard]] int GetAutoStartMode() const { return autoStartMode_; }
     void SetAutoStartMode(int value);
     [[nodiscard]] QVariantList GetAutoStartOptions() const;
+    [[nodiscard]] bool GetAutoStartAvailable() const { return autoStartAvailable_; }
+    [[nodiscard]] static QString GetAutoStartNotice();
+    [[nodiscard]] static QString GetClientMenuShortcutLabel();
+    [[nodiscard]] static QString GetSetupMenuShortcutLabel();
+    [[nodiscard]] QString GetSimSearchNote() const;
     static QString GetInstallerVersion() { return QStringLiteral(GSXI_INSTALLER_VERSION); }
     [[nodiscard]] bool GetInstallerUpdateAvailable() const;
     [[nodiscard]] QString GetInstallerLatest() const { return installerRelease_.version; }
@@ -169,10 +184,12 @@ private:
     std::function<QString()> progressText_;
     double progressValue_ = -1.0;
     bool desktopShortcut_ = true;
-    bool clientStartMenuShortcut_ = true;
+    bool clientMenuShortcut_ = true;
     bool setupShortcut_ = true;
     bool forceReinstall_ = false;
     int autoStartMode_ = kAutoStartNoChange;
+    bool autoStartAvailable_ = true;
+    QStringList simSearchLocations_;
     QString language_;
 
     QTimer runningPollTimer_;

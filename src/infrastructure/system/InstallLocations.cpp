@@ -2,6 +2,7 @@
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
+#include <QtCore/QProcess>
 #include <QtCore/QSettings>
 #include <QtCore/QStandardPaths>
 
@@ -55,6 +56,11 @@ bool IsProcessRunning(const QString& exeName)
     }
     CloseHandle(snapshot);
     return found;
+}
+
+bool StartClientProcess()
+{
+    return QProcess::startDetached(ClientExePath(), {}, ClientInstallDir());
 }
 
 QString StartMenuShortcutPath()

@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.5.0](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.4.0...v0.5.0) (2026-10-16)
+
+
+* run the installer natively on linux ([#44](https://github.com/brunofgmag/gsx-integrator-installer/issues/44)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+
+
+### Features
+
+* confirm a Linux --uninstall in a window when there is no terminal ([6a78fbc](https://github.com/brunofgmag/gsx-integrator-installer/commit/6a78fbc4104f8414a999604a551249b87307d002)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+* install the client as an AppImage with desktop entries and a systemd watcher on Linux ([40f177c](https://github.com/brunofgmag/gsx-integrator-installer/commit/40f177ca68addf3416890d8d27f01b13ce12f536)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+* resolve Proton prefixes and detect simulators and processes on Linux ([1276fa1](https://github.com/brunofgmag/gsx-integrator-installer/commit/1276fa1acda26be6ac9f0e72daa077869cf22952)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+* run on Linux with its own menu texts, auto-start notice and uninstall command ([de4b537](https://github.com/brunofgmag/gsx-integrator-installer/commit/de4b53771ac406ab197e9cbf1d2445005b252202)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+* update the installer on Linux by replacing its AppImage and pick the AppImage release assets ([eae1c96](https://github.com/brunofgmag/gsx-integrator-installer/commit/eae1c969c6d31a6ef6d5092eed104a67450221c4)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+
+
+### Bug Fixes
+
+* keep the terminal hint and exit 2 for a Linux --uninstall with no terminal and no display ([491636b](https://github.com/brunofgmag/gsx-integrator-installer/commit/491636b5c0231f55fdb0ee3051a052d722236924)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+* **linux:** bundle the wayland shell plugins in the appimage ([4295d54](https://github.com/brunofgmag/gsx-integrator-installer/commit/4295d54c3ea11ea6b3766bf70d50155b1a5cfe78)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+* **linux:** give the appimage window its icon on wayland ([0315888](https://github.com/brunofgmag/gsx-integrator-installer/commit/0315888818925f569be2549c0a822fd0116b91bf)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+* match the client by its program name instead of any command-line argument ([65a02ad](https://github.com/brunofgmag/gsx-integrator-installer/commit/65a02ad86842c3ac75e3119060ec7cbbcad6cb2f)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+* read the executable name from Windows paths whatever the host separator is ([c718caf](https://github.com/brunofgmag/gsx-integrator-installer/commit/c718caf76d09d9ec99be07e46f9542f7774e107e)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+* refuse to uninstall while a simulator is open and report what could not be removed ([7df9e5f](https://github.com/brunofgmag/gsx-integrator-installer/commit/7df9e5fe9151bcac9f7f6dba21e62e167286fed5)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+* report a client folder that could not be removed as an uninstall leftover ([69ed25e](https://github.com/brunofgmag/gsx-integrator-installer/commit/69ed25e2a0c6dbf09a01daeaeb793bd541f89239)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+* show the reason when the installer update fails to unpack, prepare or start ([2885f63](https://github.com/brunofgmag/gsx-integrator-installer/commit/2885f631a91267f1e6f5357c7fba3dd6ac333e77)) ([f6d90c7](https://github.com/brunofgmag/gsx-integrator-installer/commit/f6d90c75d7f09391e394efb1a35b52a8e472064e))
+
 ## [0.4.0](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.3.2...v0.4.0) (2026-09-26)
 
 

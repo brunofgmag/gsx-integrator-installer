@@ -68,14 +68,14 @@ InstallOutcome InstallOrchestrator::InstallClient(const InstallRequest& request,
         return {InstallStatus::CleanInstallDirFailed, gateway_.ClientInstallDir()};
     }
 
-    if (const InstallOutcome extract = gateway_.ExtractClientPackage(download.zipPath); !extract.ok())
+    if (const InstallOutcome extract = gateway_.InstallClientPackage(download.packagePath); !extract.ok())
     {
         return extract;
     }
 
-    if (!gateway_.ClientExeExists())
+    if (!gateway_.ClientExecutableExists())
     {
-        return {InstallStatus::ClientExeMissing, {}};
+        return {InstallStatus::ClientExecutableMissing, {}};
     }
 
     gateway_.InstallUninstallerCopy();
@@ -136,7 +136,7 @@ InstallOutcome InstallOrchestrator::InstallCommbus(const InstallRequest& request
 
         report(InstallPhase::InstallingCommbus, target.communityPath, -1.0);
         if (const InstallOutcome extract =
-                gateway_.ExtractCommbusPackage(download.zipPath, target.communityPath, version);
+                gateway_.ExtractCommbusPackage(download.packagePath, target.communityPath, version);
             !extract.ok())
         {
             return extract;
@@ -148,14 +148,14 @@ InstallOutcome InstallOrchestrator::InstallCommbus(const InstallRequest& request
 
 void InstallOrchestrator::ApplyShortcuts(const InstallRequest& request) const
 {
-    gateway_.ApplyShortcut(ShortcutKind::ClientStartMenu, request.clientStartMenuShortcut);
+    gateway_.ApplyShortcut(ShortcutKind::ClientMenu, request.clientMenuShortcut);
     gateway_.ApplyShortcut(ShortcutKind::Desktop, request.desktopShortcut);
     gateway_.ApplyShortcut(ShortcutKind::Setup, request.setupShortcut);
 }
 
 InstallOutcome InstallOrchestrator::ConfigureAutoStart(const InstallRequest& request, const ProgressFn& progress) const
 {
-    if (request.exeXmlRemoveTargets.isEmpty() && request.exeXmlAddTargets.isEmpty())
+    if (request.autoStartRemoveTargets.isEmpty() && request.autoStartAddTargets.isEmpty())
     {
         return {};
     }
@@ -165,25 +165,25 @@ InstallOutcome InstallOrchestrator::ConfigureAutoStart(const InstallRequest& req
         progress({InstallPhase::ConfiguringAutoStart, {}, -1.0});
     }
 
-    for (const QString& exeXmlPath : request.exeXmlRemoveTargets)
+    for (const QString& autoStartConfigPath : request.autoStartRemoveTargets)
     {
-        if (!gateway_.ExeXmlRemove(exeXmlPath))
+        if (!gateway_.RemoveAutoStartEntry(autoStartConfigPath))
         {
-            return {InstallStatus::ExeXmlUpdateFailed, exeXmlPath};
+            return {InstallStatus::AutoStartUpdateFailed, autoStartConfigPath};
         }
     }
 
-    if (!request.exeXmlAddTargets.isEmpty())
+    if (!request.autoStartAddTargets.isEmpty())
     {
-        if (!gateway_.ClientExeExists())
+        if (!gateway_.ClientExecutableExists())
         {
             return {InstallStatus::AutoStartClientMissing, {}};
         }
-        for (const QString& exeXmlPath : request.exeXmlAddTargets)
+        for (const QString& autoStartConfigPath : request.autoStartAddTargets)
         {
-            if (!gateway_.ExeXmlAdd(exeXmlPath))
+            if (!gateway_.AddAutoStartEntry(autoStartConfigPath))
             {
-                return {InstallStatus::ExeXmlUpdateFailed, exeXmlPath};
+                return {InstallStatus::AutoStartUpdateFailed, autoStartConfigPath};
             }
         }
     }
@@ -191,21 +191,50 @@ InstallOutcome InstallOrchestrator::ConfigureAutoStart(const InstallRequest& req
     return {};
 }
 
-void InstallOrchestrator::RunUninstall() const
+UninstallOutcome InstallOrchestrator::RunUninstall() const
 {
-    for (const QString& dir : gateway_.DetectedCommbusPackageDirs())
+    const QList<CommbusPackage> packages = gateway_.DetectedCommbusPackages();
+
+    for (const CommbusPackage& package : packages)
     {
-        gateway_.RemoveDirRecursively(dir);
+        if (gateway_.IsProcessRunning(package.processName))
+        {
+            return {UninstallStatus::SimRunning, package.label, {}};
+        }
     }
 
-    for (const QString& exeXmlPath : gateway_.AllExeXmlPaths())
+    QStringList leftovers;
+
+    for (const CommbusPackage& package : packages)
     {
-        static_cast<void>(gateway_.ExeXmlRemove(exeXmlPath));
+        if (!gateway_.RemoveDirRecursively(package.packageDir))
+        {
+            leftovers.append(package.packageDir);
+        }
     }
 
-    gateway_.RemoveShortcut(ShortcutKind::ClientStartMenu);
+    for (const QString& autoStartConfigPath : gateway_.AllAutoStartConfigPaths())
+    {
+        if (!gateway_.RemoveAutoStartEntry(autoStartConfigPath))
+        {
+            leftovers.append(autoStartConfigPath);
+        }
+    }
+
+    if (!leftovers.isEmpty())
+    {
+        return {UninstallStatus::LeftoversRemain, {}, leftovers};
+    }
+
+    if (!gateway_.ScheduleInstallDirRemoval())
+    {
+        return {UninstallStatus::LeftoversRemain, {}, {gateway_.ClientInstallDir()}};
+    }
+
+    gateway_.RemoveShortcut(ShortcutKind::ClientMenu);
     gateway_.RemoveShortcut(ShortcutKind::Desktop);
     gateway_.RemoveShortcut(ShortcutKind::Setup);
-    gateway_.RemoveUninstallRegistryEntry();
-    gateway_.ScheduleInstallDirRemoval();
+    gateway_.RemoveUninstallEntry();
+
+    return {};
 }

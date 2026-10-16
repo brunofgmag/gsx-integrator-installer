@@ -3,6 +3,7 @@
 
 #include "../../domain/model/InstallOutcome.h"
 #include "../../domain/model/InstallRequest.h"
+#include "../../domain/model/UninstallOutcome.h"
 
 class InstallServiceObserver
 {
@@ -21,7 +22,7 @@ public:
     virtual void SetObserver(InstallServiceObserver* observer) = 0;
     virtual void Install(const InstallRequest& request) = 0;
     virtual void LaunchClient() = 0;
-    virtual void Uninstall() = 0;
+    [[nodiscard]] virtual UninstallOutcome Uninstall() = 0;
 };
 
 #endif

@@ -17,6 +17,7 @@ QString ClientInstallDir();
 QString ClientExePath();
 QString InstalledClientVersion();
 bool IsProcessRunning(const QString& exeName);
+bool StartClientProcess();
 
 QString StartMenuShortcutPath();
 QString SetupStartMenuShortcutPath();

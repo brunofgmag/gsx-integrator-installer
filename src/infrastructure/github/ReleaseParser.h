@@ -5,6 +5,8 @@
 #include <QtCore/QString>
 #include "domain/model/ReleaseInfo.h"
 
+[[nodiscard]] QString ProgramAssetExtension();
+
 ReleaseInfo ParseLatestRelease(const QByteArray& json, const QString& assetPrefix,
                                const QString& extension = QStringLiteral(".zip"));
 
