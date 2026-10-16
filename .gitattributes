@@ -1,0 +1,2 @@
+third_party/miniz/miniz.c -text
+third_party/miniz/miniz.h -text
