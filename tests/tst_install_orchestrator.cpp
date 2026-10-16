@@ -22,6 +22,8 @@ private slots:
     static void uninstallIgnoresRunningSimWithoutTheModule();
     static void uninstallReportsPackageThatCouldNotBeRemoved();
     static void uninstallReportsAutoStartEntryThatCouldNotBeRemoved();
+    static void uninstallReportsInstallDirThatCouldNotBeRemoved();
+    static void uninstallRemovesShortcutsAndEntryOnlyAfterTheInstallDirIsGone();
 };
 
 void InstallOrchestratorTest::abortsWhenClientRunning()
@@ -263,6 +265,39 @@ void InstallOrchestratorTest::uninstallReportsAutoStartEntryThatCouldNotBeRemove
     QCOMPARE(result.leftovers, QStringList{QStringLiteral("C:/a/EXE.xml")});
     QVERIFY(!gateway.calls.contains(QStringLiteral("removeUninstallEntry")));
     QVERIFY(!gateway.calls.contains(QStringLiteral("scheduleRemoval")));
+}
+
+void InstallOrchestratorTest::uninstallReportsInstallDirThatCouldNotBeRemoved()
+{
+    FakeInstallerGateway gateway;
+    gateway.scheduleRemovalOk = false;
+
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
+
+    QVERIFY(!result.ok());
+    QCOMPARE(result.status, UninstallStatus::LeftoversRemain);
+    QCOMPARE(result.leftovers, QStringList{gateway.ClientInstallDir()});
+    QVERIFY(gateway.calls.contains(QStringLiteral("scheduleRemoval")));
+    QVERIFY(!gateway.calls.contains(QStringLiteral("removeUninstallEntry")));
+    QVERIFY(!gateway.calls.contains(
+        QStringLiteral("removeShortcut:%1").arg(static_cast<int>(ShortcutKind::Desktop))));
+    QVERIFY(!gateway.calls.contains(
+        QStringLiteral("removeShortcut:%1").arg(static_cast<int>(ShortcutKind::Setup))));
+}
+
+void InstallOrchestratorTest::uninstallRemovesShortcutsAndEntryOnlyAfterTheInstallDirIsGone()
+{
+    FakeInstallerGateway gateway;
+
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
+
+    QVERIFY(result.ok());
+
+    const qsizetype schedule = gateway.calls.indexOf(QStringLiteral("scheduleRemoval"));
+    QVERIFY(schedule >= 0);
+    QVERIFY(schedule < gateway.calls.indexOf(QStringLiteral("removeUninstallEntry")));
+    QVERIFY(schedule < gateway.calls.indexOf(
+        QStringLiteral("removeShortcut:%1").arg(static_cast<int>(ShortcutKind::Setup))));
 }
 
 QTEST_GUILESS_MAIN(InstallOrchestratorTest)

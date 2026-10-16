@@ -1,7 +1,9 @@
 #include <QtTest/QTest>
 
 #include <sys/stat.h>
+#include <unistd.h>
 
+#include <QtCore/QScopeGuard>
 #include <QtCore/QSettings>
 #include <QtCore/QTemporaryDir>
 
@@ -150,6 +152,9 @@ private slots:
     static void inspectorReportsAutoStartAvailabilityFromSystemctl();
     static void inspectorSearchLocationsListEveryLibrary();
     static void uninstallRemovesEverythingTheInstallLeftAndSparesLinkTargets();
+    static void installDirRemovalSucceedsWhenTheDirIsAlreadyGone();
+    static void installDirRemovalFailsAndKeepsTheInstallWhenTheWatcherCannotBeDisabled();
+    static void installDirRemovalFailsWhenAFileCannotBeDeleted();
 };
 
 void LinuxInstallerGatewayTest::installDirFollowsXdgDataHome()
@@ -555,6 +560,54 @@ void LinuxInstallerGatewayTest::uninstallRemovesEverythingTheInstallLeftAndSpare
     QVERIFY(!QFileInfo(tree.Community2020() + QStringLiteral("/gsx-integrator-commbus")).isSymLink());
     QCOMPARE(ReadTestFile(store + QStringLiteral("/keep.txt")), QByteArray("keep"));
     QVERIFY(!QFile::exists(box.configHome + QStringLiteral("/systemd/user/gsx-integrator-client.service")));
+}
+
+void LinuxInstallerGatewayTest::installDirRemovalSucceedsWhenTheDirIsAlreadyGone()
+{
+    const Sandbox box;
+
+    QVERIFY(!QFileInfo::exists(ClientInstallDir()));
+    QVERIFY(LinuxInstallerGateway().ScheduleInstallDirRemoval());
+}
+
+void LinuxInstallerGatewayTest::installDirRemovalFailsAndKeepsTheInstallWhenTheWatcherCannotBeDisabled()
+{
+    const FakeSteamTree tree;
+    QVERIFY(tree.IsValid());
+    const Sandbox box;
+    qputenv("HOME", tree.Home().toUtf8());
+
+    LinuxInstallerGateway gateway;
+    QVERIFY(gateway.PrepareCleanInstallDir());
+    QVERIFY(gateway.InstallClientPackage(box.Source(QStringLiteral("c.AppImage"))).ok());
+    QVERIFY(gateway.AddAutoStartEntry(tree.ExeXml2024()));
+    QVERIFY(WriteTestFile(box.dir.filePath(QStringLiteral("fail-disable")), ""));
+
+    QVERIFY(!gateway.ScheduleInstallDirRemoval());
+    QVERIFY(QFile::exists(ClientExePath()));
+    QVERIFY(QFile::exists(WatcherScriptPath()));
+}
+
+void LinuxInstallerGatewayTest::installDirRemovalFailsWhenAFileCannotBeDeleted()
+{
+    if (geteuid() == 0)
+    {
+        QSKIP("root can delete files inside a read-only directory");
+    }
+
+    const Sandbox box;
+    LinuxInstallerGateway gateway;
+    QVERIFY(gateway.PrepareCleanInstallDir());
+    const QString locked = ClientInstallDir() + QStringLiteral("/locked");
+    QVERIFY(WriteTestFile(locked + QStringLiteral("/file"), "x"));
+    QVERIFY(QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+    const auto restore = qScopeGuard([&locked]
+    {
+        (void)QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
+    });
+
+    QVERIFY(!gateway.ScheduleInstallDirRemoval());
+    QVERIFY(QFile::exists(locked + QStringLiteral("/file")));
 }
 
 QTEST_GUILESS_MAIN(LinuxInstallerGatewayTest)

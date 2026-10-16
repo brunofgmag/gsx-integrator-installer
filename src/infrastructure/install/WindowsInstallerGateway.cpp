@@ -238,20 +238,22 @@ void WindowsInstallerGateway::RemoveUninstallEntry()
                    L"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\gsx-integrator-client");
 }
 
-void WindowsInstallerGateway::ScheduleInstallDirRemoval()
+bool WindowsInstallerGateway::ScheduleInstallDirRemoval()
 {
     const QString installDir = ClientInstallDir();
     if (!QDir(installDir).exists())
     {
-        return;
+        return true;
     }
 
     const QString scriptPath =
         QDir::toNativeSeparators(QDir::tempPath() + QStringLiteral("/gsxi-uninstall.cmd"));
-    if (WriteRemovalScript(scriptPath, installDir))
+    if (!WriteRemovalScript(scriptPath, installDir))
     {
-        QProcess::startDetached(QStringLiteral("cmd.exe"),
-                                {QStringLiteral("/d"), QStringLiteral("/c"), scriptPath},
-                                QDir::tempPath());
+        return false;
     }
+
+    return QProcess::startDetached(QStringLiteral("cmd.exe"),
+                                   {QStringLiteral("/d"), QStringLiteral("/c"), scriptPath},
+                                   QDir::tempPath());
 }

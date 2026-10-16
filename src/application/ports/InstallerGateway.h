@@ -58,7 +58,7 @@ public:
     [[nodiscard]] virtual bool RemoveDirRecursively(const QString& dir) = 0;
     virtual void RemoveShortcut(ShortcutKind kind) = 0;
     virtual void RemoveUninstallEntry() = 0;
-    virtual void ScheduleInstallDirRemoval() = 0;
+    [[nodiscard]] virtual bool ScheduleInstallDirRemoval() = 0;
 };
 
 #endif

@@ -226,11 +226,15 @@ UninstallOutcome InstallOrchestrator::RunUninstall() const
         return {UninstallStatus::LeftoversRemain, {}, leftovers};
     }
 
+    if (!gateway_.ScheduleInstallDirRemoval())
+    {
+        return {UninstallStatus::LeftoversRemain, {}, {gateway_.ClientInstallDir()}};
+    }
+
     gateway_.RemoveShortcut(ShortcutKind::ClientMenu);
     gateway_.RemoveShortcut(ShortcutKind::Desktop);
     gateway_.RemoveShortcut(ShortcutKind::Setup);
     gateway_.RemoveUninstallEntry();
-    gateway_.ScheduleInstallDirRemoval();
 
     return {};
 }

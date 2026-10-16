@@ -20,6 +20,7 @@ public:
     bool prepareOk = true;
     bool autoStartAddOk = true;
     bool autoStartRemoveOk = true;
+    bool scheduleRemovalOk = true;
     QList<CommbusPackage> commbusPackages;
     QSet<QString> undeletableDirs;
     QStringList autoStartConfigPaths;
@@ -111,7 +112,12 @@ public:
     }
 
     void RemoveUninstallEntry() override { calls << QStringLiteral("removeUninstallEntry"); }
-    void ScheduleInstallDirRemoval() override { calls << QStringLiteral("scheduleRemoval"); }
+
+    bool ScheduleInstallDirRemoval() override
+    {
+        calls << QStringLiteral("scheduleRemoval");
+        return scheduleRemovalOk;
+    }
 };
 
 #endif // GSX_INTEGRATOR_INSTALLER_TESTS_FAKEINSTALLERGATEWAY_H

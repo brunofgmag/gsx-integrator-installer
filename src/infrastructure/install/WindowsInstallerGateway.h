@@ -30,7 +30,7 @@ public:
     [[nodiscard]] bool RemoveDirRecursively(const QString& dir) override;
     void RemoveShortcut(ShortcutKind kind) override;
     void RemoveUninstallEntry() override;
-    void ScheduleInstallDirRemoval() override;
+    [[nodiscard]] bool ScheduleInstallDirRemoval() override;
 };
 
 #endif

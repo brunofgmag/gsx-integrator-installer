@@ -264,8 +264,12 @@ void LinuxInstallerGateway::RemoveUninstallEntry()
     QFile::remove(InstallMetadataPath());
 }
 
-void LinuxInstallerGateway::ScheduleInstallDirRemoval()
+bool LinuxInstallerGateway::ScheduleInstallDirRemoval()
 {
-    (void)Watcher().Disable();
-    (void)QDir(ClientInstallDir()).removeRecursively();
+    if (!Watcher().Disable())
+    {
+        return false;
+    }
+
+    return QDir(ClientInstallDir()).removeRecursively();
 }
