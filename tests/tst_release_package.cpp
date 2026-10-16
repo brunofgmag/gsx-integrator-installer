@@ -16,7 +16,7 @@ namespace
     {
         QByteArray name;
         QByteArray data;
-        mz_uint level = MZ_DEFAULT_COMPRESSION;
+        mz_uint level = MZ_DEFAULT_LEVEL;
     };
 
     QByteArray BuildZip(const QList<ZipEntry>& entries)
