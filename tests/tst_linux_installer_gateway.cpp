@@ -88,6 +88,18 @@ namespace
         return QString::fromUtf8(ReadTestFile(dir + QStringLiteral("/systemctl.log"))).split(u'\n', Qt::SkipEmptyParts);
     }
 
+    bool AddProcess(const QString& procRoot, const QString& pid, const QList<QByteArray>& arguments)
+    {
+        QByteArray cmdline;
+        for (const QByteArray& argument : arguments)
+        {
+            cmdline += argument;
+            cmdline.append('\0');
+        }
+
+        return WriteTestFile(procRoot + u'/' + pid + QStringLiteral("/cmdline"), cmdline);
+    }
+
     struct Sandbox
     {
         EnvironmentGuard guard;
@@ -95,10 +107,12 @@ namespace
         QString home = dir.filePath(QStringLiteral("home"));
         QString dataHome = dir.filePath(QStringLiteral("share dir"));
         QString configHome = dir.filePath(QStringLiteral("config"));
+        QString procRoot = dir.filePath(QStringLiteral("proc"));
 
         Sandbox()
         {
             (void)QDir().mkpath(home);
+            (void)QDir().mkpath(procRoot);
             const QString bin = FakeSystemctlBin(dir.path());
             qputenv("HOME", home.toUtf8());
             qputenv("XDG_DATA_HOME", dataHome.toUtf8());
@@ -152,6 +166,7 @@ private slots:
     static void inspectorReportsAutoStartAvailabilityFromSystemctl();
     static void inspectorSearchLocationsListEveryLibrary();
     static void uninstallRemovesEverythingTheInstallLeftAndSparesLinkTargets();
+    static void uninstallStopsWhileTheSimulatorOfAPackageRuns();
     static void installDirRemovalSucceedsWhenTheDirIsAlreadyGone();
     static void installDirRemovalFailsAndKeepsTheInstallWhenTheWatcherCannotBeDisabled();
     static void installDirRemovalFailsWhenAFileCannotBeDeleted();
@@ -533,7 +548,7 @@ void LinuxInstallerGatewayTest::uninstallRemovesEverythingTheInstallLeftAndSpare
     const Sandbox box;
     qputenv("HOME", tree.Home().toUtf8());
 
-    LinuxInstallerGateway gateway;
+    LinuxInstallerGateway gateway(box.procRoot);
     QVERIFY(gateway.PrepareCleanInstallDir());
     QVERIFY(gateway.InstallClientPackage(box.Source(QStringLiteral("c.AppImage"))).ok());
     gateway.WriteUninstallEntry(QStringLiteral("1.0.0"));
@@ -560,6 +575,25 @@ void LinuxInstallerGatewayTest::uninstallRemovesEverythingTheInstallLeftAndSpare
     QVERIFY(!QFileInfo(tree.Community2020() + QStringLiteral("/gsx-integrator-commbus")).isSymLink());
     QCOMPARE(ReadTestFile(store + QStringLiteral("/keep.txt")), QByteArray("keep"));
     QVERIFY(!QFile::exists(box.configHome + QStringLiteral("/systemd/user/gsx-integrator-client.service")));
+}
+
+void LinuxInstallerGatewayTest::uninstallStopsWhileTheSimulatorOfAPackageRuns()
+{
+    const FakeSteamTree tree;
+    QVERIFY(tree.IsValid());
+    const Sandbox box;
+    qputenv("HOME", tree.Home().toUtf8());
+
+    LinuxInstallerGateway gateway(box.procRoot);
+    QVERIFY(gateway.ExtractCommbusPackage(box.Source(QStringLiteral("c.zip"), CommbusZip()), tree.Community2024(),
+                                          QStringLiteral("0.9.0")).ok());
+    QVERIFY(AddProcess(box.procRoot, QStringLiteral("42"),
+                       {"wine64-preloader", "Z:\\steamapps\\common\\MSFS2024\\FlightSimulator2024.exe"}));
+
+    const UninstallOutcome outcome = InstallOrchestrator(gateway).RunUninstall();
+
+    QCOMPARE(outcome.status, UninstallStatus::SimRunning);
+    QVERIFY(QFileInfo::exists(tree.Community2024() + QStringLiteral("/gsx-integrator-commbus")));
 }
 
 void LinuxInstallerGatewayTest::installDirRemovalSucceedsWhenTheDirIsAlreadyGone()

@@ -1,5 +1,7 @@
 #include "LinuxInstallerGateway.h"
 
+#include <utility>
+
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -102,14 +104,19 @@ namespace
     }
 }
 
+LinuxInstallerGateway::LinuxInstallerGateway(QString procRoot)
+    : procRoot_(std::move(procRoot))
+{
+}
+
 bool LinuxInstallerGateway::IsClientRunning() const
 {
-    return IsProgramRunning(QLatin1String(kProcRoot), ClientProcessNames());
+    return IsProgramRunning(procRoot_, ClientProcessNames());
 }
 
 bool LinuxInstallerGateway::IsProcessRunning(const QString& processName) const
 {
-    return ::IsProcessRunning(processName);
+    return IsAnyProcessRunning(procRoot_, {processName});
 }
 
 bool LinuxInstallerGateway::IsInstallerInsideInstallDir() const
