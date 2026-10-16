@@ -74,6 +74,8 @@ set(LINUX_INFRASTRUCTURE_SOURCES
         src/infrastructure/system/ProcessScan.h
         src/infrastructure/system/ProtonPrefix.cpp
         src/infrastructure/system/ProtonPrefix.h
+        src/infrastructure/install/AppImageDesktopEntry.cpp
+        src/infrastructure/install/AppImageDesktopEntry.h
         src/infrastructure/install/AppImageFiles.cpp
         src/infrastructure/install/AppImageFiles.h
         src/infrastructure/install/DesktopEntry.cpp

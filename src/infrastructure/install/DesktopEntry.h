@@ -9,6 +9,9 @@ struct DesktopEntry
     QString comment;
     QString execPath;
     QString iconPath;
+    QString startupWmClass;
+    bool tryExec = false;
+    bool hidden = false;
 };
 
 [[nodiscard]] QString QuoteDesktopExec(const QString& path);

@@ -36,6 +36,11 @@
 #include "infrastructure/platform/WindowsTitleBar.h"
 #endif
 
+#ifdef Q_OS_LINUX
+#include "infrastructure/install/AppImageDesktopEntry.h"
+#include "infrastructure/system/LinuxInstallLocations.h"
+#endif
+
 namespace
 {
     constexpr int kContinueInWindow = -1;
@@ -204,6 +209,11 @@ int main(int argc, char* argv[])
     QGuiApplication::setApplicationVersion(QStringLiteral(GSXI_INSTALLER_VERSION));
 #ifdef Q_OS_LINUX
     QGuiApplication::setDesktopFileName(QStringLiteral("gsx-integrator-installer"));
+    QFile windowIcon(QStringLiteral(":/icons/app-icon.png"));
+    if (windowIcon.open(QIODevice::ReadOnly))
+    {
+        (void)EnsureWindowIconEntry(RunningAppImagePath(), DataHome(), windowIcon.readAll());
+    }
 #endif
 
     QFont monoFont(QStringLiteral("Cascadia Mono"));

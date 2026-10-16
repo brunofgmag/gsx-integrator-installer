@@ -13,6 +13,8 @@ private slots:
     static void percentSignsAreDoubled();
     static void entryHasTheKeysALauncherNeeds();
     static void entryWithoutIconOmitsTheKey();
+    static void plainEntryCarriesNoneOfTheLauncherOnlyKeys();
+    static void launcherOnlyEntryHidesItselfAndNamesItsWindowClass();
 };
 
 void DesktopEntryTest::plainPathIsQuoted()
@@ -56,6 +58,32 @@ void DesktopEntryTest::entryWithoutIconOmitsTheKey()
     const QString text = BuildDesktopEntry({QStringLiteral("A"), QStringLiteral("B"), QStringLiteral("/x"), {}});
 
     QVERIFY(!text.contains(QStringLiteral("Icon=")));
+}
+
+void DesktopEntryTest::plainEntryCarriesNoneOfTheLauncherOnlyKeys()
+{
+    const QString text = BuildDesktopEntry({QStringLiteral("A"), QStringLiteral("B"), QStringLiteral("/x"), {}});
+
+    QVERIFY(!text.contains(QStringLiteral("TryExec=")));
+    QVERIFY(!text.contains(QStringLiteral("StartupWMClass=")));
+    QVERIFY(!text.contains(QStringLiteral("NoDisplay=")));
+}
+
+void DesktopEntryTest::launcherOnlyEntryHidesItselfAndNamesItsWindowClass()
+{
+    DesktopEntry entry;
+    entry.name = QStringLiteral("A");
+    entry.comment = QStringLiteral("B");
+    entry.execPath = QStringLiteral("/x y");
+    entry.startupWmClass = QStringLiteral("app-id");
+    entry.tryExec = true;
+    entry.hidden = true;
+
+    const QString text = BuildDesktopEntry(entry);
+
+    QVERIFY(text.contains(QStringLiteral("\nTryExec=/x y\n")));
+    QVERIFY(text.contains(QStringLiteral("\nStartupWMClass=app-id\n")));
+    QVERIFY(text.contains(QStringLiteral("\nNoDisplay=true\n")));
 }
 
 QTEST_APPLESS_MAIN(DesktopEntryTest)

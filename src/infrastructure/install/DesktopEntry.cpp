@@ -25,11 +25,23 @@ QString BuildDesktopEntry(const DesktopEntry& entry)
     text += QStringLiteral("Name=") + entry.name + u'\n';
     text += QStringLiteral("Comment=") + entry.comment + u'\n';
     text += QStringLiteral("Exec=") + QuoteDesktopExec(entry.execPath) + u'\n';
+    if (entry.tryExec)
+    {
+        text += QStringLiteral("TryExec=") + entry.execPath + u'\n';
+    }
     if (!entry.iconPath.isEmpty())
     {
         text += QStringLiteral("Icon=") + entry.iconPath + u'\n';
     }
     text += QStringLiteral("Terminal=false\nCategories=Utility;\n");
+    if (!entry.startupWmClass.isEmpty())
+    {
+        text += QStringLiteral("StartupWMClass=") + entry.startupWmClass + u'\n';
+    }
+    if (entry.hidden)
+    {
+        text += QStringLiteral("NoDisplay=true\n");
+    }
 
     return text;
 }

@@ -15,9 +15,12 @@ inline constexpr auto kWatcherUnitName = "gsx-integrator-client.service";
 inline constexpr auto kClientDesktopFileName = "gsx-integrator-client.desktop";
 inline constexpr auto kSetupDesktopFileName = "gsx-integrator-installer.desktop";
 inline constexpr auto kDesktopIconName = "gsx-integrator.png";
+inline constexpr auto kClientWindowIconName = "gsx-integrator-client.png";
+inline constexpr auto kSetupWindowIconName = "gsx-integrator-installer.png";
 
 [[nodiscard]] QString DataHome();
 [[nodiscard]] QString ConfigHome();
+[[nodiscard]] QString WindowIconPath(const QString& dataHome, const QString& iconName);
 
 [[nodiscard]] QString MaintenanceDir();
 [[nodiscard]] QString MaintenanceInstallerPath();

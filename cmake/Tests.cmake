@@ -119,6 +119,8 @@ if (NOT WIN32)
             src/domain/Versions.h
             src/infrastructure/github/GithubDownloader.cpp
             src/infrastructure/github/GithubDownloader.h
+            src/infrastructure/install/AppImageDesktopEntry.cpp
+            src/infrastructure/install/AppImageDesktopEntry.h
             src/infrastructure/install/AppImageFiles.cpp
             src/infrastructure/install/AppImageFiles.h
             src/infrastructure/install/DesktopEntry.cpp

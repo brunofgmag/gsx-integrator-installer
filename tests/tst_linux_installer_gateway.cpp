@@ -8,6 +8,7 @@
 #include <QtCore/QTemporaryDir>
 
 #include "../src/application/install/InstallOrchestrator.h"
+#include "../src/infrastructure/install/AppImageDesktopEntry.h"
 #include "../src/infrastructure/install/LinuxInstallerGateway.h"
 #include "../src/infrastructure/system/InstallLocations.h"
 #include "../src/infrastructure/system/LinuxInstallLocations.h"
@@ -156,6 +157,10 @@ private slots:
     static void removingADanglingLinkWorks();
     static void clientShortcutPointsAtTheAppImageWithQuotedExec();
     static void setupShortcutPointsAtTheMaintenanceCopy();
+    static void windowIconEntryIsHiddenAndPointsAtTheRunningAppImage();
+    static void windowIconEntryLeavesAnExistingShortcutAlone();
+    static void windowIconEntryOfAMovedAppImageIsRewritten();
+    static void windowIconEntryAlreadyCurrentIsNotRewritten();
     static void desktopShortcutIsExecutableAndInTheDesktopFolder();
     static void shortcutIsNotCreatedForAMissingTarget();
     static void unwantedShortcutIsRemoved();
@@ -430,6 +435,87 @@ void LinuxInstallerGatewayTest::setupShortcutPointsAtTheMaintenanceCopy()
     QVERIFY(LinuxSystemInspector().SetupMenuShortcutExists());
 }
 
+void LinuxInstallerGatewayTest::windowIconEntryIsHiddenAndPointsAtTheRunningAppImage()
+{
+    const Sandbox box;
+    const QString appImage = box.dir.filePath(QStringLiteral("Down loads/installer.AppImage"));
+    QVERIFY(WriteTestFile(appImage, "appimage"));
+
+    QVERIFY(EnsureWindowIconEntry(appImage, box.dataHome, "png-bytes"));
+
+    const QString iconPath = box.dataHome + QStringLiteral("/icons/hicolor/256x256/apps/gsx-integrator-installer.png");
+    const QString desktop = QString::fromUtf8(ReadTestFile(SetupStartMenuShortcutPath()));
+    QVERIFY(QDir::isAbsolutePath(iconPath));
+    QVERIFY(appImage.contains(u' '));
+    QVERIFY(desktop.contains(QStringLiteral("\nExec=\"") + appImage + QStringLiteral("\"\n")));
+    QVERIFY(desktop.contains(QStringLiteral("\nTryExec=") + appImage + u'\n'));
+    QVERIFY(desktop.contains(QStringLiteral("\nIcon=") + iconPath + u'\n'));
+    QVERIFY(desktop.contains(QStringLiteral("\nStartupWMClass=gsx-integrator-installer\n")));
+    QVERIFY(desktop.contains(QStringLiteral("\nNoDisplay=true\n")));
+    QCOMPARE(ReadTestFile(iconPath), QByteArray("png-bytes"));
+}
+
+void LinuxInstallerGatewayTest::windowIconEntryLeavesAnExistingShortcutAlone()
+{
+    const Sandbox box;
+    const QString appImage = box.dir.filePath(QStringLiteral("installer.AppImage"));
+    QVERIFY(WriteTestFile(appImage, "appimage"));
+    QVERIFY(WriteTestFile(MaintenanceInstallerPath(), "installer"));
+    LinuxInstallerGateway().ApplyShortcut(ShortcutKind::Setup, true);
+    const QDateTime past = QDateTime::fromSecsSinceEpoch(1'000'000'000);
+    QFile shortcut(SetupStartMenuShortcutPath());
+    QVERIFY(shortcut.open(QIODevice::ReadWrite));
+    QVERIFY(shortcut.setFileTime(past, QFileDevice::FileModificationTime));
+    shortcut.close();
+    const QByteArray before = ReadTestFile(SetupStartMenuShortcutPath());
+
+    QVERIFY(!EnsureWindowIconEntry(appImage, box.dataHome, "png-bytes"));
+
+    QCOMPARE(ReadTestFile(SetupStartMenuShortcutPath()), before);
+    QCOMPARE(QFileInfo(SetupStartMenuShortcutPath()).lastModified(), past);
+    QVERIFY(!QFile::exists(box.dataHome + QStringLiteral("/icons/hicolor/256x256/apps/gsx-integrator-installer.png")));
+}
+
+void LinuxInstallerGatewayTest::windowIconEntryOfAMovedAppImageIsRewritten()
+{
+    const Sandbox box;
+    const QString oldAppImage = box.dir.filePath(QStringLiteral("old/x.AppImage"));
+    const QString appImage = box.dir.filePath(QStringLiteral("new place/x.AppImage"));
+    QVERIFY(WriteTestFile(oldAppImage, "appimage"));
+    QVERIFY(WriteTestFile(appImage, "appimage"));
+    QVERIFY(EnsureWindowIconEntry(oldAppImage, box.dataHome, "png-bytes"));
+
+    QVERIFY(EnsureWindowIconEntry(appImage, box.dataHome, "png-bytes"));
+
+    const QString desktop = QString::fromUtf8(ReadTestFile(SetupStartMenuShortcutPath()));
+    QVERIFY(desktop.contains(QStringLiteral("\nExec=\"") + appImage + QStringLiteral("\"\n")));
+    QVERIFY(desktop.contains(QStringLiteral("\nTryExec=") + appImage + u'\n'));
+    QVERIFY(!desktop.contains(oldAppImage));
+}
+
+void LinuxInstallerGatewayTest::windowIconEntryAlreadyCurrentIsNotRewritten()
+{
+    const Sandbox box;
+    const QString appImage = box.dir.filePath(QStringLiteral("installer.AppImage"));
+    const QString iconPath = box.dataHome + QStringLiteral("/icons/hicolor/256x256/apps/gsx-integrator-installer.png");
+    QVERIFY(WriteTestFile(appImage, "appimage"));
+    QVERIFY(EnsureWindowIconEntry(appImage, box.dataHome, "png-bytes"));
+    const QDateTime past = QDateTime::fromSecsSinceEpoch(1'000'000'000);
+    for (const QString& path : {SetupStartMenuShortcutPath(), iconPath})
+    {
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::ReadWrite));
+        QVERIFY(file.setFileTime(past, QFileDevice::FileModificationTime));
+    }
+    const QByteArray before = ReadTestFile(SetupStartMenuShortcutPath());
+
+    QVERIFY(EnsureWindowIconEntry(appImage, box.dataHome, "png-bytes"));
+
+    QCOMPARE(ReadTestFile(SetupStartMenuShortcutPath()), before);
+    QCOMPARE(QFileInfo(SetupStartMenuShortcutPath()).lastModified(), past);
+    QCOMPARE(QFileInfo(iconPath).lastModified(), past);
+}
+
 void LinuxInstallerGatewayTest::desktopShortcutIsExecutableAndInTheDesktopFolder()
 {
     const Sandbox box;
@@ -563,10 +649,16 @@ void LinuxInstallerGatewayTest::uninstallRemovesEverythingTheInstallLeftAndSpare
     QVERIFY(WriteTestFile(store + QStringLiteral("/keep.txt"), "keep"));
     QVERIFY(MakeTestSymlink(store, tree.Community2020() + QStringLiteral("/gsx-integrator-commbus")));
     QVERIFY(gateway.AddAutoStartEntry(tree.ExeXml2024()));
+    const QString clientIcon = WindowIconPath(box.dataHome, QLatin1String(kClientWindowIconName));
+    const QString setupIcon = WindowIconPath(box.dataHome, QLatin1String(kSetupWindowIconName));
+    QVERIFY(WriteTestFile(clientIcon, "png"));
+    QVERIFY(WriteTestFile(setupIcon, "png"));
 
     const UninstallOutcome outcome = InstallOrchestrator(gateway).RunUninstall();
 
     QVERIFY2(outcome.ok(), qPrintable(outcome.leftovers.join(u',')));
+    QVERIFY(!QFile::exists(clientIcon));
+    QVERIFY(!QFile::exists(setupIcon));
     QVERIFY(!QFileInfo::exists(ClientInstallDir()));
     QVERIFY(!QFile::exists(StartMenuShortcutPath()));
     QVERIFY(!QFile::exists(SetupStartMenuShortcutPath()));

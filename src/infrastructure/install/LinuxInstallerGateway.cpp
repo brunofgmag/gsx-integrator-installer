@@ -50,6 +50,21 @@ namespace
         return {};
     }
 
+    QString WindowIconNameOf(const ShortcutKind kind)
+    {
+        switch (kind)
+        {
+        case ShortcutKind::ClientMenu:
+            return QLatin1String(kClientWindowIconName);
+        case ShortcutKind::Setup:
+            return QLatin1String(kSetupWindowIconName);
+        case ShortcutKind::Desktop:
+            return {};
+        }
+
+        return {};
+    }
+
     bool EnsureDesktopIcon()
     {
         const QString iconPath = DesktopIconPath();
@@ -87,7 +102,7 @@ namespace
         }
 
         const QString iconPath = EnsureDesktopIcon() ? DesktopIconPath() : QString();
-        const DesktopEntry entry{desc.name, desc.comment, desc.target, iconPath};
+        const DesktopEntry entry{desc.name, desc.comment, desc.target, iconPath, QString(), false, false};
         if (file.write(BuildDesktopEntry(entry).toUtf8()) < 0)
         {
             return false;
@@ -264,6 +279,12 @@ bool LinuxInstallerGateway::RemoveDirRecursively(const QString& dir)
 void LinuxInstallerGateway::RemoveShortcut(const ShortcutKind kind)
 {
     QFile::remove(DescribeShortcut(kind).desktopPath);
+
+    const QString iconName = WindowIconNameOf(kind);
+    if (!iconName.isEmpty())
+    {
+        QFile::remove(WindowIconPath(DataHome(), iconName));
+    }
 }
 
 void LinuxInstallerGateway::RemoveUninstallEntry()

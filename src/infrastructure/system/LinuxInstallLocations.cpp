@@ -36,6 +36,11 @@ QString ConfigHome()
     return AbsoluteEnvironmentDir("XDG_CONFIG_HOME", QStringLiteral(".config"));
 }
 
+QString WindowIconPath(const QString& dataHome, const QString& iconName)
+{
+    return dataHome + QStringLiteral("/icons/hicolor/256x256/apps/") + iconName;
+}
+
 QString ClientInstallDir()
 {
     return DataHome() + u'/' + QLatin1String(kClientInstallDirName);
