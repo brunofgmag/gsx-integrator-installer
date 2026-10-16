@@ -61,6 +61,11 @@ linuxdeploy \
 
 mkdir -p "$app_dir/usr/plugins/platformthemes"
 cp "$QT_ROOT_DIR/plugins/platformthemes/libqxdgdesktopportal.so" "$app_dir/usr/plugins/platformthemes/"
+for plugin in wayland-shell-integration/libxdg-shell.so wayland-decoration-client/libbradient.so \
+    wayland-graphics-integration-client/libqt-plugin-wayland-egl.so; do
+    mkdir -p "$app_dir/usr/plugins/$(dirname "$plugin")"
+    cp "$QT_ROOT_DIR/plugins/$plugin" "$app_dir/usr/plugins/$plugin"
+done
 
 qml_dir="$app_dir/usr/qml"
 rm -rf \
