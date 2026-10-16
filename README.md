@@ -28,7 +28,7 @@ There is a native Linux build for MSFS 2024 and 2020 on the Steam of your distri
 4. Shortcuts are `.desktop` files, in `$XDG_DATA_HOME/applications` and on the desktop.
 5. Auto-start is a systemd user service, `gsx-integrator-client.service`, that opens the client when the simulator starts and closes it when the simulator exits. Where `systemctl --user` doesn't work, the option is shown disabled.
 6. The installer updates itself by replacing the AppImage it was started from. That needs the file to sit in a folder you can write to.
-7. To uninstall, use the button in the installer, or run the AppImage with `--uninstall` from a terminal (`--yes` skips the question).
+7. To uninstall, use the button in the installer, or run the AppImage with `--uninstall`. In a terminal it asks first, and `--yes` skips the question. Without a terminal it opens a window that asks you to confirm.
 
 Build and test:
 

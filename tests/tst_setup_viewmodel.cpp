@@ -68,6 +68,9 @@ private slots:
     static void shortcutTogglesPersistAndRestoreAcrossSessions();
     static void uninstallRunsAndEntersUninstalledState();
     static void uninstallBlockedWhileClientIsRunning();
+    static void uninstallConfirmationWaitsForTheAnswerWithoutCheckingReleases();
+    static void uninstallConfirmationRemovesOnConfirm();
+    static void uninstallConfirmationStaysOnScreenWhenSomethingRemains();
     static void uninstallRefusedBySimulatorShowsErrorInsteadOfRemoved();
     static void uninstallLeftoversAreListedAndScreenDoesNotSayRemoved();
     static void uninstallErrorRetranslatesWhenLanguageChanges();
@@ -420,6 +423,55 @@ void SetupViewModelTest::uninstallBlockedWhileClientIsRunning()
     QCOMPARE(install.uninstallCount, 0);
     QVERIFY(!vm.GetErrorText().isEmpty());
     QVERIFY(vm.GetState() != QStringLiteral("uninstalled"));
+}
+
+void SetupViewModelTest::uninstallConfirmationWaitsForTheAnswerWithoutCheckingReleases()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.BeginUninstallConfirmation();
+
+    QCOMPARE(vm.GetState(), QStringLiteral("confirmUninstall"));
+    QCOMPARE(releases.fetchCount, 0);
+    QCOMPARE(install.uninstallCount, 0);
+}
+
+void SetupViewModelTest::uninstallConfirmationRemovesOnConfirm()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.BeginUninstallConfirmation();
+    vm.uninstall();
+
+    QCOMPARE(install.uninstallCount, 1);
+    QCOMPARE(vm.GetState(), QStringLiteral("uninstalled"));
+}
+
+void SetupViewModelTest::uninstallConfirmationStaysOnScreenWhenSomethingRemains()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    install.uninstallOutcome = {UninstallStatus::SimRunning, QStringLiteral("MSFS 2024"), {}};
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.BeginUninstallConfirmation();
+    vm.uninstall();
+
+    QCOMPARE(vm.GetState(), QStringLiteral("confirmUninstall"));
+    QVERIFY(vm.GetErrorText().contains(QStringLiteral("MSFS 2024")));
 }
 
 void SetupViewModelTest::uninstallRefusedBySimulatorShowsErrorInsteadOfRemoved()

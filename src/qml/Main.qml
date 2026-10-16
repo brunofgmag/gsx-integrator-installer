@@ -329,6 +329,38 @@ Window {
         }
 
         Column {
+            visible: root.controller.state === "confirmUninstall"
+            width: parent.width
+            spacing: 16
+
+            Text {
+                text: qsTr("Uninstall GSX Integrator")
+                color: Theme.text
+                font.pixelSize: 15
+            }
+            Text {
+                width: parent.width
+                text: qsTr("Remove GSX Integrator, CommBus, the shortcuts and auto-start from this PC?")
+                color: Theme.text
+                font.pixelSize: 13
+                wrapMode: Text.WordWrap
+            }
+            Row {
+                spacing: 10
+
+                ActionButton {
+                    label: qsTr("Uninstall")
+                    onClicked: root.controller.uninstall()
+                }
+                ActionButton {
+                    label: qsTr("Cancel")
+                    primary: false
+                    onClicked: Qt.quit()
+                }
+            }
+        }
+
+        Column {
             visible: root.controller.state === "installing"
             width: parent.width
             spacing: 10

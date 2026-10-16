@@ -72,6 +72,14 @@ void SetupViewModel::refresh()
     releases_->FetchLatest();
 }
 
+void SetupViewModel::BeginUninstallConfirmation()
+{
+    state_ = QStringLiteral("confirmUninstall");
+    errorText_ = nullptr;
+
+    emit Changed();
+}
+
 void SetupViewModel::RefreshInstalledVersions()
 {
     clientInstalled_ = inspector_->InstalledClientVersion();

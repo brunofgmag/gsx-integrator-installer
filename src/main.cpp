@@ -38,6 +38,8 @@
 
 namespace
 {
+    constexpr int kContinueInWindow = -1;
+
 #ifdef Q_OS_WIN
     bool AcquireSingleInstance()
     {
@@ -98,7 +100,7 @@ namespace
     {
         Yes,
         No,
-        NoTerminal,
+        AskInWindow,
     };
 
     UninstallAnswer ConfirmUninstall(int argc, char* argv[])
@@ -113,8 +115,7 @@ namespace
 
         if (!isatty(STDIN_FILENO))
         {
-            std::fputs("Run the uninstaller from a terminal, or pass --yes to skip the question.\n", stderr);
-            return UninstallAnswer::NoTerminal;
+            return UninstallAnswer::AskInWindow;
         }
 
         std::fputs("Remove GSX Integrator, the CommBus module and the auto-start service "
@@ -132,17 +133,17 @@ namespace
 
     int RunUninstallCommand(int argc, char* argv[])
     {
-        const QCoreApplication app(argc, argv);
         switch (ConfirmUninstall(argc, argv))
         {
         case UninstallAnswer::Yes:
             break;
         case UninstallAnswer::No:
             return 0;
-        case UninstallAnswer::NoTerminal:
-            return 2;
+        case UninstallAnswer::AskInWindow:
+            return kContinueInWindow;
         }
 
+        const QCoreApplication app(argc, argv);
         LinuxInstallerGateway gateway;
         if (gateway.IsClientRunning())
         {
@@ -170,11 +171,19 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    bool confirmUninstallInWindow = false;
     for (int i = 1; i < argc; ++i)
     {
         if (std::strcmp(argv[i], "--uninstall") == 0)
         {
-            return RunUninstallCommand(argc, argv);
+            const int exitCode = RunUninstallCommand(argc, argv);
+            if (exitCode != kContinueInWindow)
+            {
+                return exitCode;
+            }
+
+            confirmUninstallInWindow = true;
+            break;
         }
     }
 
@@ -234,7 +243,14 @@ int main(int argc, char* argv[])
     SetupViewModel controller(&settingsRepository, &releaseProvider, &inspector, &installService,
                               &selfUpdateService);
 
-    controller.refresh();
+    if (confirmUninstallInWindow)
+    {
+        controller.BeginUninstallConfirmation();
+    }
+    else
+    {
+        controller.refresh();
+    }
 
     QQmlApplicationEngine engine;
     engine.setInitialProperties({

@@ -78,6 +78,8 @@ public:
     Q_INVOKABLE void openClient() const;
     Q_INVOKABLE void uninstall();
 
+    void BeginUninstallConfirmation();
+
     static QString UninstallErrorText(const UninstallOutcome& outcome);
 
     [[nodiscard]] QString GetState() const { return state_; }
