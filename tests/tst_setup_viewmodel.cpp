@@ -77,6 +77,7 @@ private slots:
     static void invalidInstallerReleaseStaysReadyWithoutError();
     static void selfUpdateStartsOnceWhileUpdating();
     static void selfUpdateRecoversAfterFailure();
+    static void selfUpdateFailureShowsTheReason();
     static void installBlockedWhileSelfUpdating();
     static void selfUpdateOutsideAnAppImageSaysWhy();
     static void selfUpdateInAnUnwritableFolderNamesTheFolder();
@@ -605,12 +606,39 @@ void SetupViewModelTest::selfUpdateRecoversAfterFailure()
     vm.selfUpdate();
     QCOMPARE(selfUpdate.startCount, 1);
 
-    vm.OnSelfUpdateFailed(SelfUpdateError::SwapFailed, QString());
+    vm.OnSelfUpdateFailed(SelfUpdateError::SwapFailed, QStringLiteral("/tmp/update.cmd"));
     QCOMPARE(vm.GetInstallerUpdateState(), QStringLiteral("error"));
     QVERIFY(!vm.GetInstallerUpdateError().isEmpty());
 
     vm.selfUpdate();
     QCOMPARE(selfUpdate.startCount, 2);
+}
+
+void SetupViewModelTest::selfUpdateFailureShowsTheReason()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    const SelfUpdateError kinds[] = {
+        SelfUpdateError::DownloadFailed,
+        SelfUpdateError::ChecksumMismatch,
+        SelfUpdateError::ExtractFailed,
+        SelfUpdateError::SwapFailed,
+        SelfUpdateError::RelaunchFailed,
+        SelfUpdateError::AppImageDirNotWritable,
+    };
+
+    for (const SelfUpdateError kind : kinds)
+    {
+        vm.OnSelfUpdateFailed(kind, QStringLiteral("zip: bad CRC in gsx.exe"));
+
+        QVERIFY2(vm.GetInstallerUpdateError().contains(QStringLiteral("zip: bad CRC in gsx.exe")),
+                 qPrintable(QString::number(static_cast<int>(kind))));
+    }
 }
 
 void SetupViewModelTest::installBlockedWhileSelfUpdating()

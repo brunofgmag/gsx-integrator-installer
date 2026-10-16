@@ -57,11 +57,13 @@ void SelfUpdateWorker::Run(const ReleaseInfo& release)
     QFile::remove(zipPath);
 
     const QString payloadDir = stagingDir + u'/' + QLatin1String(kPayloadDirName);
+    const QString payloadExe = payloadDir + u'/' + QLatin1String(kInstallerExeName);
 
-    if (!extract.ok() || !QFile::exists(payloadDir + u'/' + QLatin1String(kInstallerExeName)))
+    if (!extract.ok() || !QFile::exists(payloadExe))
     {
         QDir(stagingDir).removeRecursively();
-        emit failed(SelfUpdateError::ExtractFailed, extract.detail);
+        emit failed(SelfUpdateError::ExtractFailed,
+                    extract.ok() ? QDir::toNativeSeparators(payloadExe) : extract.detail);
         return;
     }
 
@@ -117,7 +119,7 @@ void WindowsSelfUpdateService::OnStaged(const QString& stagingDir, const QString
     if (!WriteSelfUpdateScript(scriptPath, payloadDir, QCoreApplication::applicationDirPath(),
                                QCoreApplication::applicationFilePath(), stagingDir))
     {
-        OnFailed(SelfUpdateError::SwapFailed, {});
+        OnFailed(SelfUpdateError::SwapFailed, scriptPath);
         return;
     }
 
@@ -125,7 +127,7 @@ void WindowsSelfUpdateService::OnStaged(const QString& stagingDir, const QString
                                  {QStringLiteral("/d"), QStringLiteral("/c"), scriptPath},
                                  QDir::tempPath()))
     {
-        OnFailed(SelfUpdateError::RelaunchFailed, {});
+        OnFailed(SelfUpdateError::RelaunchFailed, scriptPath);
         return;
     }
 

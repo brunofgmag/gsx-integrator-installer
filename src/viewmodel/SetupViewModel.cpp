@@ -622,11 +622,11 @@ QString SetupViewModel::SelfUpdateErrorText(const SelfUpdateError kind, const QS
     case SelfUpdateError::ChecksumMismatch:
         return tr("%1 was corrupted during download. Try again.").arg(detail);
     case SelfUpdateError::ExtractFailed:
-        return tr("Couldn't unpack the installer update.");
+        return tr("Couldn't unpack the installer update: %1").arg(detail);
     case SelfUpdateError::SwapFailed:
-        return tr("Couldn't prepare the installer update.");
+        return tr("Couldn't prepare the installer update: %1").arg(detail);
     case SelfUpdateError::RelaunchFailed:
-        return tr("Couldn't start the updater. Try again.");
+        return tr("Couldn't start the updater (%1). Try again.").arg(detail);
     case SelfUpdateError::NotAnAppImage:
         return tr("This installer wasn't started from an AppImage, so it can't replace itself. "
             "Download the new AppImage and run that one.");

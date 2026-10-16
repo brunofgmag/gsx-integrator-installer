@@ -349,6 +349,21 @@
         <translation>Não foi possível gravar %1.</translation>
     </message>
     <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="625"/>
+        <source>Couldn&apos;t unpack the installer update: %1</source>
+        <translation>Não foi possível descompactar a atualização do instalador: %1</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="627"/>
+        <source>Couldn&apos;t prepare the installer update: %1</source>
+        <translation>Não foi possível preparar a atualização do instalador: %1</translation>
+    </message>
+    <message>
+        <location filename="../src/viewmodel/SetupViewModel.cpp" line="629"/>
+        <source>Couldn&apos;t start the updater (%1). Try again.</source>
+        <translation>Não foi possível iniciar o atualizador (%1). Tente novamente.</translation>
+    </message>
+    <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="631"/>
         <source>This installer wasn&apos;t started from an AppImage, so it can&apos;t replace itself. Download the new AppImage and run that one.</source>
         <translation>Este instalador não foi aberto a partir de um AppImage, então não consegue se substituir. Baixe o novo AppImage e abra esse.</translation>
@@ -394,21 +409,6 @@
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="576"/>
         <source>Couldn&apos;t update %1.</source>
         <translation>Não foi possível atualizar %1.</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="625"/>
-        <source>Couldn&apos;t unpack the installer update.</source>
-        <translation>Não foi possível descompactar a atualização do instalador.</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="627"/>
-        <source>Couldn&apos;t prepare the installer update.</source>
-        <translation>Não foi possível preparar a atualização do instalador.</translation>
-    </message>
-    <message>
-        <location filename="../src/viewmodel/SetupViewModel.cpp" line="629"/>
-        <source>Couldn&apos;t start the updater. Try again.</source>
-        <translation>Não foi possível iniciar o atualizador. Tente novamente.</translation>
     </message>
     <message>
         <location filename="../src/viewmodel/SetupViewModel.cpp" line="652"/>
