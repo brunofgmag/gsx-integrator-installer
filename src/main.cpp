@@ -101,6 +101,7 @@ namespace
         Yes,
         No,
         AskInWindow,
+        NoWayToAsk,
     };
 
     UninstallAnswer ConfirmUninstall(int argc, char* argv[])
@@ -115,6 +116,12 @@ namespace
 
         if (!isatty(STDIN_FILENO))
         {
+            if (qEnvironmentVariableIsEmpty("DISPLAY") && qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY"))
+            {
+                std::fputs("Run the uninstaller from a terminal, or pass --yes to skip the question.\n", stderr);
+                return UninstallAnswer::NoWayToAsk;
+            }
+
             return UninstallAnswer::AskInWindow;
         }
 
@@ -141,6 +148,8 @@ namespace
             return 0;
         case UninstallAnswer::AskInWindow:
             return kContinueInWindow;
+        case UninstallAnswer::NoWayToAsk:
+            return 2;
         }
 
         const QCoreApplication app(argc, argv);
