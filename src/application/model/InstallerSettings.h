@@ -8,7 +8,7 @@ struct InstallerSettings
 {
     QString language = QStringLiteral("system");
     bool desktopShortcut = true;
-    bool clientStartMenuShortcut = true;
+    bool clientMenuShortcut = true;
     bool setupShortcut = true;
     QStringList disabledCommbusSims;
 };

@@ -1,0 +1,88 @@
+foreach (REQUIRED_VARIABLE LUPDATE SOURCE_DIR I18N_DIR)
+    if (NOT DEFINED ${REQUIRED_VARIABLE})
+        message(FATAL_ERROR "Pass -D${REQUIRED_VARIABLE}=<value>.")
+    endif ()
+endforeach ()
+
+function(read_source_inventory TS_PATH OUT_VAR)
+    file(READ "${TS_PATH}" CONTENT)
+    string(REPLACE ";" "<semicolon>" CONTENT "${CONTENT}")
+    string(REPLACE "[" "<lbracket>" CONTENT "${CONTENT}")
+    string(REPLACE "]" "<rbracket>" CONTENT "${CONTENT}")
+    string(REGEX MATCHALL "<name>[^<]*</name>|<source>[^<]*</source>" TOKENS "${CONTENT}")
+
+    set(CONTEXT "")
+    set(ITEMS "")
+    foreach (TOKEN IN LISTS TOKENS)
+        if (TOKEN MATCHES "^<name>(.*)</name>$")
+            set(CONTEXT "${CMAKE_MATCH_1}")
+        elseif (TOKEN MATCHES "^<source>(.*)</source>$")
+            list(APPEND ITEMS "${CONTEXT}  ${CMAKE_MATCH_1}")
+        endif ()
+    endforeach ()
+
+    set(${OUT_VAR} "${ITEMS}" PARENT_SCOPE)
+endfunction()
+
+function(subtract_inventory MINUEND SUBTRAHEND OUT_VAR)
+    set(RESULT ${MINUEND})
+    if (SUBTRAHEND)
+        list(REMOVE_ITEM RESULT ${SUBTRAHEND})
+    endif ()
+    set(${OUT_VAR} "${RESULT}" PARENT_SCOPE)
+endfunction()
+
+file(GLOB TS_FILES "${I18N_DIR}/*.ts")
+if (NOT TS_FILES)
+    message(FATAL_ERROR "No .ts file found in ${I18N_DIR}")
+endif ()
+list(SORT TS_FILES)
+
+set(WORK_DIR "${CMAKE_BINARY_DIR}/ts-check")
+file(REMOVE_RECURSE "${WORK_DIR}")
+file(MAKE_DIRECTORY "${WORK_DIR}")
+
+set(COPIES "")
+foreach (TS_FILE IN LISTS TS_FILES)
+    get_filename_component(TS_NAME "${TS_FILE}" NAME)
+    file(COPY "${TS_FILE}" DESTINATION "${WORK_DIR}")
+    list(APPEND COPIES "${WORK_DIR}/${TS_NAME}")
+endforeach ()
+
+execute_process(
+    COMMAND "${LUPDATE}" "${SOURCE_DIR}" -ts ${COPIES} -no-obsolete -locations none
+    RESULT_VARIABLE LUPDATE_RESULT
+    OUTPUT_QUIET
+    ERROR_QUIET)
+
+set(PROBLEMS "")
+if (NOT LUPDATE_RESULT EQUAL 0)
+    list(APPEND PROBLEMS "lupdate failed (exit ${LUPDATE_RESULT}).")
+else ()
+    foreach (TS_FILE IN LISTS TS_FILES)
+        get_filename_component(TS_NAME "${TS_FILE}" NAME)
+        read_source_inventory("${TS_FILE}" COMMITTED)
+        read_source_inventory("${WORK_DIR}/${TS_NAME}" REGENERATED)
+        subtract_inventory("${REGENERATED}" "${COMMITTED}" MISSING)
+        subtract_inventory("${COMMITTED}" "${REGENERATED}" STALE)
+        if (MISSING OR STALE)
+            list(APPEND PROBLEMS "==> ${TS_FILE} is out of date:")
+            foreach (ITEM IN LISTS MISSING)
+                list(APPEND PROBLEMS "    [MISSING from .ts - string in code, not extracted] ${ITEM}")
+            endforeach ()
+            foreach (ITEM IN LISTS STALE)
+                list(APPEND PROBLEMS "    [STALE in .ts - removed from code] ${ITEM}")
+            endforeach ()
+        endif ()
+    endforeach ()
+endif ()
+
+file(REMOVE_RECURSE "${WORK_DIR}")
+
+if (PROBLEMS)
+    list(JOIN PROBLEMS "\n" PROBLEM_TEXT)
+    message(FATAL_ERROR "Translations are out of date with the source.\nRun lupdate and translate in the .ts (target: update_translations).\n\n${PROBLEM_TEXT}")
+endif ()
+
+list(LENGTH TS_FILES TS_COUNT)
+message(STATUS "Translations are in sync with the source (${TS_COUNT} file(s) checked).")

@@ -4,43 +4,15 @@
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
-#include <QtCore/QRegularExpression>
-#include <QtCore/QStandardPaths>
 
 #include "../github/GithubDownloader.h"
 #include "../system/InstallLocations.h"
+#include "ReleasePackage.h"
 #include "SelfUpdateScript.h"
 
 namespace
 {
     constexpr auto kPayloadDirName = "gsx-integrator-installer";
-
-    QString ReadExpectedSha(const QString& shaFilePath)
-    {
-        QFile file(shaFilePath);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            return {};
-        }
-
-        const QString content = QString::fromUtf8(file.readAll()).trimmed();
-
-        static const QRegularExpression whitespace(QStringLiteral("\\s"));
-
-        return content.section(whitespace, 0, 0).toLower();
-    }
-
-    QString TarExecutable()
-    {
-        QString systemTar = qEnvironmentVariable("SystemRoot", QStringLiteral("C:/Windows"))
-            + QStringLiteral("/System32/tar.exe");
-        if (QFile::exists(systemTar))
-        {
-            return systemTar;
-        }
-
-        return QStandardPaths::findExecutable(QStringLiteral("tar"));
-    }
 }
 
 void SelfUpdateWorker::Run(const ReleaseInfo& release)
@@ -49,9 +21,9 @@ void SelfUpdateWorker::Run(const ReleaseInfo& release)
     QDir(stagingDir).removeRecursively();
     (void)QDir().mkpath(stagingDir);
 
-    const QString zipPath = stagingDir + u'/' + release.zipName;
+    const QString zipPath = stagingDir + u'/' + release.assetName;
 
-    const QString downloadError = DownloadFile(release.zipUrl, zipPath,
+    const QString downloadError = DownloadFile(release.assetUrl, zipPath,
                                                [this](const qint64 received, const qint64 total)
                                                {
                                                    emit progress(total > 0
@@ -73,34 +45,25 @@ void SelfUpdateWorker::Run(const ReleaseInfo& release)
         return;
     }
 
-    const QString expected = ReadExpectedSha(shaPath);
-
-    if (expected.isEmpty() || Sha256File(zipPath) != expected)
+    if (!Sha256Matches(zipPath, shaPath))
     {
         QDir(stagingDir).removeRecursively();
-        emit failed(SelfUpdateError::ChecksumMismatch, release.zipName);
+        emit failed(SelfUpdateError::ChecksumMismatch, release.assetName);
         return;
     }
 
-    QProcess tar;
-    tar.start(TarExecutable(),
-              {
-                  QStringLiteral("-xf"), QDir::toNativeSeparators(zipPath),
-                  QStringLiteral("-C"), QDir::toNativeSeparators(stagingDir)
-              });
-
-    const bool extracted = tar.waitForStarted(5000)
-        && (tar.waitForFinished(-1), tar.exitStatus() == QProcess::NormalExit && tar.exitCode() == 0);
+    const ExtractResult extract = ExtractZip(zipPath, stagingDir);
 
     QFile::remove(zipPath);
 
     const QString payloadDir = stagingDir + u'/' + QLatin1String(kPayloadDirName);
+    const QString payloadExe = payloadDir + u'/' + QLatin1String(kInstallerExeName);
 
-    if (!extracted || !QFile::exists(payloadDir + u'/' + QLatin1String(kInstallerExeName)))
+    if (!extract.ok() || !QFile::exists(payloadExe))
     {
-        const QString detail = QString::fromLocal8Bit(tar.readAllStandardError()).trimmed();
         QDir(stagingDir).removeRecursively();
-        emit failed(SelfUpdateError::ExtractFailed, detail);
+        emit failed(SelfUpdateError::ExtractFailed,
+                    extract.ok() ? QDir::toNativeSeparators(payloadExe) : extract.detail);
         return;
     }
 
@@ -156,7 +119,7 @@ void WindowsSelfUpdateService::OnStaged(const QString& stagingDir, const QString
     if (!WriteSelfUpdateScript(scriptPath, payloadDir, QCoreApplication::applicationDirPath(),
                                QCoreApplication::applicationFilePath(), stagingDir))
     {
-        OnFailed(SelfUpdateError::SwapFailed, {});
+        OnFailed(SelfUpdateError::SwapFailed, scriptPath);
         return;
     }
 
@@ -164,7 +127,7 @@ void WindowsSelfUpdateService::OnStaged(const QString& stagingDir, const QString
                                  {QStringLiteral("/d"), QStringLiteral("/c"), scriptPath},
                                  QDir::tempPath()))
     {
-        OnFailed(SelfUpdateError::RelaunchFailed, {});
+        OnFailed(SelfUpdateError::RelaunchFailed, scriptPath);
         return;
     }
 

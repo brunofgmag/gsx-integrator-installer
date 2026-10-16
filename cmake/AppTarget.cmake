@@ -1,5 +1,10 @@
+set(APP_PLATFORM_SOURCES)
+if (WIN32)
+    list(APPEND APP_PLATFORM_SOURCES assets/app.rc)
+endif ()
+
 qt_add_executable(${APP_NAME}
-        assets/app.rc
+        ${APP_PLATFORM_SOURCES}
         assets/resources.qrc
         src/main.cpp
         ${DOMAIN_SOURCES}
@@ -39,22 +44,26 @@ file(READ "${CMAKE_SOURCE_DIR}/VERSION.txt" GSXI_INSTALLER_VERSION)
 string(STRIP "${GSXI_INSTALLER_VERSION}" GSXI_INSTALLER_VERSION)
 
 target_compile_definitions(${APP_NAME} PRIVATE
-        WIN32_LEAN_AND_MEAN
-        NOMINMAX
         GSXI_INSTALLER_VERSION="${GSXI_INSTALLER_VERSION}"
         $<$<CONFIG:Release>:NDEBUG>
 )
 
+if (WIN32)
+    target_compile_definitions(${APP_NAME} PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+endif ()
+
 if (MSVC)
     target_compile_options(${APP_NAME} PRIVATE /W4 /permissive- /Zc:preprocessor /external:W0)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(${APP_NAME} PRIVATE -Wall -Wextra)
 endif ()
 
 target_link_libraries(${APP_NAME} PRIVATE
         Qt6::Quick
         Qt6::Network
-        Qt6::Xml
-        dwmapi
-        ole32
-        uuid
-        advapi32
+        miniz
 )
+
+if (WIN32)
+    target_link_libraries(${APP_NAME} PRIVATE Qt6::Xml dwmapi ole32 uuid advapi32)
+endif ()

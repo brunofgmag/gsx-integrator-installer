@@ -50,8 +50,11 @@ void SetupViewModel::refresh()
 
     const InstallerSettings saved = settings_->Load();
     desktopShortcut_ = saved.desktopShortcut;
-    clientStartMenuShortcut_ = saved.clientStartMenuShortcut;
+    clientMenuShortcut_ = saved.clientMenuShortcut;
     setupShortcut_ = saved.setupShortcut;
+
+    autoStartAvailable_ = inspector_->AutoStartAvailable();
+    simSearchLocations_ = inspector_->SimSearchLocations();
 
     sims_.clear();
     for (const SimInstall& sim : inspector_->DetectSims())
@@ -67,6 +70,14 @@ void SetupViewModel::refresh()
     emit Changed();
 
     releases_->FetchLatest();
+}
+
+void SetupViewModel::BeginUninstallConfirmation()
+{
+    state_ = QStringLiteral("confirmUninstall");
+    errorText_ = nullptr;
+
+    emit Changed();
 }
 
 void SetupViewModel::RefreshInstalledVersions()
@@ -219,8 +230,8 @@ bool SetupViewModel::HasShortcutChanges() const
     }
 
     return desktopShortcut_ != inspector_->DesktopShortcutExists()
-        || clientStartMenuShortcut_ != inspector_->ClientStartMenuShortcutExists()
-        || setupShortcut_ != inspector_->SetupStartMenuShortcutExists();
+        || clientMenuShortcut_ != inspector_->ClientMenuShortcutExists()
+        || setupShortcut_ != inspector_->SetupMenuShortcutExists();
 }
 
 bool SetupViewModel::HasAnythingToDo() const
@@ -285,8 +296,46 @@ QVariantList SetupViewModel::GetAutoStartOptions() const
 
 void SetupViewModel::SetAutoStartMode(const int value)
 {
+    if (!autoStartAvailable_)
+    {
+        return;
+    }
+
     autoStartMode_ = value;
     emit Changed();
+}
+
+QString SetupViewModel::GetAutoStartNotice()
+{
+    return tr("Auto-start needs systemd user services, and they aren't available on this system.");
+}
+
+QString SetupViewModel::GetClientMenuShortcutLabel()
+{
+#ifdef Q_OS_WIN
+    return tr("Add GSX Integrator to the Start Menu");
+#else
+    return tr("Add GSX Integrator to the applications menu");
+#endif
+}
+
+QString SetupViewModel::GetSetupMenuShortcutLabel()
+{
+#ifdef Q_OS_WIN
+    return tr("Add this installer to the Start Menu");
+#else
+    return tr("Add this installer to the applications menu");
+#endif
+}
+
+QString SetupViewModel::GetSimSearchNote() const
+{
+    if (!sims_.isEmpty() || simSearchLocations_.isEmpty())
+    {
+        return {};
+    }
+
+    return tr("Looked in: %1").arg(simSearchLocations_.join(QStringLiteral(", ")));
 }
 
 void SetupViewModel::setSimSelected(const int index, const bool selected)
@@ -314,7 +363,7 @@ void SetupViewModel::PersistShortcutSettings() const
 {
     InstallerSettings settings = settings_->Load();
     settings.desktopShortcut = desktopShortcut_;
-    settings.clientStartMenuShortcut = clientStartMenuShortcut_;
+    settings.clientMenuShortcut = clientMenuShortcut_;
     settings.setupShortcut = setupShortcut_;
     settings_->Save(settings);
 }
@@ -328,9 +377,9 @@ void SetupViewModel::SetDesktopShortcut(const bool value)
     emit Changed();
 }
 
-void SetupViewModel::SetClientStartMenuShortcut(const bool value)
+void SetupViewModel::SetClientMenuShortcut(const bool value)
 {
-    clientStartMenuShortcut_ = value;
+    clientMenuShortcut_ = value;
 
     PersistShortcutSettings();
 
@@ -404,7 +453,7 @@ void SetupViewModel::install()
     request.clientRelease = clientRelease_;
     request.commbusRelease = commbusRelease_;
     request.desktopShortcut = desktopShortcut_;
-    request.clientStartMenuShortcut = clientStartMenuShortcut_;
+    request.clientMenuShortcut = clientMenuShortcut_;
     request.setupShortcut = setupShortcut_;
     for (const SimEntry& entry : sims_)
     {
@@ -421,7 +470,7 @@ void SetupViewModel::install()
         {
             if (wantedGeneration == 0 || entry.sim.generation == wantedGeneration)
             {
-                request.exeXmlAddTargets.append(entry.sim.exeXmlPath);
+                request.autoStartAddTargets.append(entry.sim.autoStartConfigPath);
             }
         }
     };
@@ -429,18 +478,18 @@ void SetupViewModel::install()
     switch (autoStartMode_)
     {
     case kAutoStartDisable:
-        request.exeXmlRemoveTargets = inspector_->CandidateExeXmlPaths(0);
+        request.autoStartRemoveTargets = inspector_->CandidateAutoStartConfigPaths(0);
         break;
     case kAutoStartAllSims:
         addAutoStartTargets(0);
         break;
     case kAutoStart2020Only:
         addAutoStartTargets(2020);
-        request.exeXmlRemoveTargets = inspector_->CandidateExeXmlPaths(2024);
+        request.autoStartRemoveTargets = inspector_->CandidateAutoStartConfigPaths(2024);
         break;
     case kAutoStart2024Only:
         addAutoStartTargets(2024);
-        request.exeXmlRemoveTargets = inspector_->CandidateExeXmlPaths(2020);
+        request.autoStartRemoveTargets = inspector_->CandidateAutoStartConfigPaths(2020);
         break;
     default:
         break;
@@ -514,11 +563,14 @@ QString SetupViewModel::InstallErrorText(const InstallOutcome& outcome)
         return tr("%1 was corrupted during download. Try again.").arg(outcome.detail);
     case InstallStatus::CleanInstallDirFailed:
         return tr("Couldn't remove the previous installation at %1.").arg(outcome.detail);
-    case InstallStatus::TarMissing:
-        return tr("Couldn't start tar.exe. Windows 10 or newer is required.");
     case InstallStatus::ExtractFailed:
         return tr("Extraction failed: %1").arg(outcome.detail);
-    case InstallStatus::ClientExeMissing:
+    case InstallStatus::ExtractUnsafeEntry:
+        return tr("The download contains a file that would be written outside the install folder: %1")
+            .arg(outcome.detail);
+    case InstallStatus::ExtractWriteFailed:
+        return tr("Couldn't write %1.").arg(outcome.detail);
+    case InstallStatus::ClientExecutableMissing:
         return tr("The download doesn't contain the GSX Integrator app.");
     case InstallStatus::SimRunning:
         return tr("%1 is open. Close it to install CommBus.").arg(outcome.detail);
@@ -528,7 +580,7 @@ QString SetupViewModel::InstallErrorText(const InstallOutcome& outcome)
     case InstallStatus::AutoStartClientMissing:
         return tr("The GSX Integrator app isn't installed, "
             "so auto-start couldn't be set up.");
-    case InstallStatus::ExeXmlUpdateFailed:
+    case InstallStatus::AutoStartUpdateFailed:
         return tr("Couldn't update %1.").arg(outcome.detail);
     case InstallStatus::Success:
         break;
@@ -578,11 +630,17 @@ QString SetupViewModel::SelfUpdateErrorText(const SelfUpdateError kind, const QS
     case SelfUpdateError::ChecksumMismatch:
         return tr("%1 was corrupted during download. Try again.").arg(detail);
     case SelfUpdateError::ExtractFailed:
-        return tr("Couldn't unpack the installer update.");
+        return tr("Couldn't unpack the installer update: %1").arg(detail);
     case SelfUpdateError::SwapFailed:
-        return tr("Couldn't prepare the installer update.");
+        return tr("Couldn't prepare the installer update: %1").arg(detail);
     case SelfUpdateError::RelaunchFailed:
-        return tr("Couldn't start the updater. Try again.");
+        return tr("Couldn't start the updater (%1). Try again.").arg(detail);
+    case SelfUpdateError::NotAnAppImage:
+        return tr("This installer wasn't started from an AppImage, so it can't replace itself. "
+            "Download the new AppImage and run that one.");
+    case SelfUpdateError::AppImageDirNotWritable:
+        return tr("This installer can't write to %1, so it can't replace itself. "
+            "Move the AppImage to a folder you can write to.").arg(detail);
     }
 
     return {};
@@ -605,8 +663,34 @@ void SetupViewModel::uninstall()
     }
 
     errorText_ = nullptr;
-    install_->Uninstall();
+
+    const UninstallOutcome outcome = install_->Uninstall();
+    if (!outcome.ok())
+    {
+        RefreshInstalledVersions();
+        errorText_ = [outcome] { return UninstallErrorText(outcome); };
+        emit Changed();
+        return;
+    }
+
     state_ = QStringLiteral("uninstalled");
 
     emit Changed();
+}
+
+QString SetupViewModel::UninstallErrorText(const UninstallOutcome& outcome)
+{
+    switch (outcome.status)
+    {
+    case UninstallStatus::SimRunning:
+        return tr("%1 is open. Close it before uninstalling.").arg(outcome.detail);
+    case UninstallStatus::LeftoversRemain:
+        return tr("Couldn't remove everything, so GSX Integrator is still installed. "
+            "Close anything that is using these and try again:\n%1")
+            .arg(outcome.leftovers.join(u'\n'));
+    case UninstallStatus::Success:
+        break;
+    }
+
+    return {};
 }

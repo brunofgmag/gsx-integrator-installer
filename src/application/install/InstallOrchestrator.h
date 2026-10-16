@@ -4,6 +4,7 @@
 #include <functional>
 #include "../../domain/model/InstallOutcome.h"
 #include "../../domain/model/InstallRequest.h"
+#include "../../domain/model/UninstallOutcome.h"
 #include "../ports/InstallerGateway.h"
 
 class InstallOrchestrator
@@ -14,7 +15,7 @@ public:
     explicit InstallOrchestrator(InstallerGateway& gateway);
 
     [[nodiscard]] InstallOutcome RunInstall(const InstallRequest& request, const ProgressFn& progress) const;
-    void RunUninstall() const;
+    [[nodiscard]] UninstallOutcome RunUninstall() const;
 
 private:
     [[nodiscard]] InstallOutcome InstallClient(const InstallRequest& request, const ProgressFn& progress) const;

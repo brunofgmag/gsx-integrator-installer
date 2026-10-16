@@ -19,8 +19,8 @@ struct ReleaseInfo
     ReleaseError errorKind = ReleaseError::None;
     QString error;
     QString version;
-    QString zipName;
-    QUrl zipUrl;
+    QString assetName;
+    QUrl assetUrl;
     QUrl shaUrl;
 };
 

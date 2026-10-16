@@ -31,4 +31,7 @@ QtObject {
     readonly property int radiusSmall: 3
 
     readonly property string monoFamily: "Cascadia Mono"
+
+    readonly property bool segoeIcons: Qt.platform.os === "windows"
+    readonly property string iconFamily: segoeIcons ? "Segoe MDL2 Assets" : Qt.application.font.family
 }

@@ -11,13 +11,14 @@ enum class InstallStatus
     DownloadFailed,
     ChecksumMismatch,
     CleanInstallDirFailed,
-    TarMissing,
     ExtractFailed,
-    ClientExeMissing,
+    ExtractUnsafeEntry,
+    ExtractWriteFailed,
+    ClientExecutableMissing,
     SimRunning,
     CommbusReplaceFailed,
     AutoStartClientMissing,
-    ExeXmlUpdateFailed,
+    AutoStartUpdateFailed,
 };
 
 struct InstallOutcome

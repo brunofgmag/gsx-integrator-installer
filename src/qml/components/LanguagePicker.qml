@@ -40,8 +40,9 @@ Rectangle {
 
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: ""
-            font.family: "Segoe MDL2 Assets"
+            visible: Theme.segoeIcons
+            text: "\uE774"
+            font.family: Theme.iconFamily
             font.pixelSize: 13
             color: Theme.muted
         }
@@ -53,8 +54,8 @@ Rectangle {
         }
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: ""
-            font.family: "Segoe MDL2 Assets"
+            text: Theme.segoeIcons ? "\uE70D" : "\u25BE"
+            font.family: Theme.iconFamily
             font.pixelSize: 9
             color: Theme.muted
             rotation: menu.visible ? 180 : 0
@@ -119,8 +120,8 @@ Rectangle {
                         anchors.rightMargin: 10
                         anchors.verticalCenter: parent.verticalCenter
                         visible: entry.selected
-                        text: ""
-                        font.family: "Segoe MDL2 Assets"
+                        text: Theme.segoeIcons ? "\uE73E" : "\u2713"
+                        font.family: Theme.iconFamily
                         font.pixelSize: 11
                         color: Theme.accent
                     }

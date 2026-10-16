@@ -9,7 +9,7 @@ struct SimInstall
     QString label;
     QString communityPath;
     QString processName;
-    QString exeXmlPath;
+    QString autoStartConfigPath;
     int generation = 0;
 };
 

@@ -7,6 +7,8 @@ Item {
     property bool checked: false
     signal selected()
 
+    opacity: enabled ? 1.0 : 0.5
+
     implicitWidth: radioContent.implicitWidth
     implicitHeight: radioContent.implicitHeight
 

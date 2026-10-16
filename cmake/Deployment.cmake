@@ -1,8 +1,11 @@
 set_target_properties(${APP_NAME} PROPERTIES
         OUTPUT_NAME "${APP_NAME}"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-        WIN32_EXECUTABLE $<NOT:$<CONFIG:Debug>>
 )
+
+if (WIN32)
+    set_target_properties(${APP_NAME} PROPERTIES WIN32_EXECUTABLE $<NOT:$<CONFIG:Debug>>)
+endif ()
 
 foreach (CONFIG Debug Release RelWithDebInfo MinSizeRel)
     string(TOUPPER "${CONFIG}" CONFIG_UPPER)

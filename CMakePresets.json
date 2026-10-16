@@ -33,6 +33,22 @@
             "name": "release",
             "displayName": "Qt MSVC 2022 x64 - Release",
             "inherits": "msvc-qt-base"
+        },
+        {
+            "name": "linux-release",
+            "displayName": "Qt GCC x64 - Release",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "BUILD_TESTING": "ON",
+                "CMAKE_PREFIX_PATH": "$env{QT_ROOT_DIR}"
+            }
         }
     ],
     "buildPresets": [
@@ -47,6 +63,11 @@
             "displayName": "Build Qt MSVC Release",
             "configurePreset": "release",
             "configuration": "Release"
+        },
+        {
+            "name": "linux-release",
+            "displayName": "Build Qt GCC Release",
+            "configurePreset": "linux-release"
         }
     ],
     "testPresets": [
@@ -66,6 +87,17 @@
             "configuration": "Release",
             "output": {
                 "outputOnFailure": true
+            }
+        },
+        {
+            "name": "linux-release",
+            "displayName": "Test Qt GCC Release",
+            "configurePreset": "linux-release",
+            "output": {
+                "outputOnFailure": true
+            },
+            "environment": {
+                "QT_QPA_PLATFORM": "offscreen"
             }
         }
     ]

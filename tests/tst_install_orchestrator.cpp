@@ -11,13 +11,19 @@ private slots:
     static void abortsWhenClientRunning();
     static void abortsWhenInstallerInsideInstallDir();
     static void abortsOnDownloadError();
-    static void abortsWhenPackageMissingExe();
+    static void abortsWhenPackageMissingExecutable();
     static void installsClientInOrder();
     static void abortsWhenSimRunningForCommbus();
     static void stampsCommbusVersionOnExtract();
     static void appliesShortcutsWithWantedFlags();
-    static void updatesExeXmlTargets();
+    static void updatesAutoStartTargets();
     static void uninstallRunsFullSequence();
+    static void uninstallRefusedWhenSimRunningRemovesNothing();
+    static void uninstallIgnoresRunningSimWithoutTheModule();
+    static void uninstallReportsPackageThatCouldNotBeRemoved();
+    static void uninstallReportsAutoStartEntryThatCouldNotBeRemoved();
+    static void uninstallReportsInstallDirThatCouldNotBeRemoved();
+    static void uninstallRemovesShortcutsAndEntryOnlyAfterTheInstallDirIsGone();
 };
 
 void InstallOrchestratorTest::abortsWhenClientRunning()
@@ -64,7 +70,7 @@ void InstallOrchestratorTest::abortsOnDownloadError()
     QVERIFY(!gateway.calls.contains(QStringLiteral("extractClient")));
 }
 
-void InstallOrchestratorTest::abortsWhenPackageMissingExe()
+void InstallOrchestratorTest::abortsWhenPackageMissingExecutable()
 {
     FakeInstallerGateway gateway;
     gateway.clientExe = false;
@@ -74,7 +80,7 @@ void InstallOrchestratorTest::abortsWhenPackageMissingExe()
     const InstallOutcome result = InstallOrchestrator(gateway).RunInstall(request, {});
 
     QVERIFY(!result.ok());
-    QCOMPARE(result.status, InstallStatus::ClientExeMissing);
+    QCOMPARE(result.status, InstallStatus::ClientExecutableMissing);
     QVERIFY(gateway.calls.contains(QStringLiteral("extractClient")));
     QVERIFY(!gateway.calls.contains(QStringLiteral("uninstallerCopy")));
 }
@@ -98,7 +104,7 @@ void InstallOrchestratorTest::installsClientInOrder()
     QVERIFY(download < prepare);
     QVERIFY(prepare < extract);
     QVERIFY(gateway.calls.contains(QStringLiteral("uninstallerCopy")));
-    QVERIFY(gateway.calls.contains(QStringLiteral("registry:1.2.3")));
+    QVERIFY(gateway.calls.contains(QStringLiteral("uninstallEntry:1.2.3")));
 }
 
 void InstallOrchestratorTest::abortsWhenSimRunningForCommbus()
@@ -140,7 +146,7 @@ void InstallOrchestratorTest::appliesShortcutsWithWantedFlags()
     FakeInstallerGateway gateway;
     InstallRequest request;
     request.desktopShortcut = true;
-    request.clientStartMenuShortcut = false;
+    request.clientMenuShortcut = false;
     request.setupShortcut = true;
 
     const InstallOutcome result = InstallOrchestrator(gateway).RunInstall(request, {});
@@ -149,39 +155,149 @@ void InstallOrchestratorTest::appliesShortcutsWithWantedFlags()
     QVERIFY(gateway.calls.contains(
         QStringLiteral("shortcut:%1:1").arg(static_cast<int>(ShortcutKind::Desktop))));
     QVERIFY(gateway.calls.contains(
-        QStringLiteral("shortcut:%1:0").arg(static_cast<int>(ShortcutKind::ClientStartMenu))));
+        QStringLiteral("shortcut:%1:0").arg(static_cast<int>(ShortcutKind::ClientMenu))));
     QVERIFY(gateway.calls.contains(
         QStringLiteral("shortcut:%1:1").arg(static_cast<int>(ShortcutKind::Setup))));
 }
 
-void InstallOrchestratorTest::updatesExeXmlTargets()
+void InstallOrchestratorTest::updatesAutoStartTargets()
 {
     FakeInstallerGateway gateway;
     InstallRequest request;
-    request.exeXmlRemoveTargets << QStringLiteral("C:/a/EXE.xml");
-    request.exeXmlAddTargets << QStringLiteral("C:/b/EXE.xml");
+    request.autoStartRemoveTargets << QStringLiteral("C:/a/EXE.xml");
+    request.autoStartAddTargets << QStringLiteral("C:/b/EXE.xml");
 
     const InstallOutcome result = InstallOrchestrator(gateway).RunInstall(request, {});
 
     QVERIFY(result.ok());
-    QVERIFY(gateway.calls.contains(QStringLiteral("exeXmlRemove:C:/a/EXE.xml")));
-    QVERIFY(gateway.calls.contains(QStringLiteral("exeXmlAdd:C:/b/EXE.xml")));
+    QVERIFY(gateway.calls.contains(QStringLiteral("autoStartRemove:C:/a/EXE.xml")));
+    QVERIFY(gateway.calls.contains(QStringLiteral("autoStartAdd:C:/b/EXE.xml")));
 }
 
 void InstallOrchestratorTest::uninstallRunsFullSequence()
 {
     FakeInstallerGateway gateway;
-    gateway.commbusPackageDirs << QStringLiteral("C:/Community/gsx-integrator-commbus");
-    gateway.exeXmlPaths << QStringLiteral("C:/a/EXE.xml") << QStringLiteral("C:/b/EXE.xml");
+    gateway.commbusPackages << CommbusPackage{
+        QStringLiteral("C:/Community/gsx-integrator-commbus"), QStringLiteral("FlightSimulator.exe"),
+        QStringLiteral("MSFS 2020")
+    };
+    gateway.autoStartConfigPaths << QStringLiteral("C:/a/EXE.xml") << QStringLiteral("C:/b/EXE.xml");
 
-    InstallOrchestrator(gateway).RunUninstall();
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
 
+    QVERIFY(result.ok());
+    QVERIFY(result.leftovers.isEmpty());
     QVERIFY(gateway.calls.contains(QStringLiteral("removeDir:C:/Community/gsx-integrator-commbus")));
-    QVERIFY(gateway.calls.contains(QStringLiteral("exeXmlRemove:C:/a/EXE.xml")));
-    QVERIFY(gateway.calls.contains(QStringLiteral("exeXmlRemove:C:/b/EXE.xml")));
-    QVERIFY(gateway.calls.contains(QStringLiteral("removeRegistry")));
+    QVERIFY(gateway.calls.contains(QStringLiteral("autoStartRemove:C:/a/EXE.xml")));
+    QVERIFY(gateway.calls.contains(QStringLiteral("autoStartRemove:C:/b/EXE.xml")));
+    QVERIFY(gateway.calls.contains(QStringLiteral("removeUninstallEntry")));
     QVERIFY(gateway.calls.contains(QStringLiteral("scheduleRemoval")));
     QVERIFY(gateway.calls.contains(QStringLiteral("removeShortcut:%1").arg(static_cast<int>(ShortcutKind::Desktop))));
+}
+
+void InstallOrchestratorTest::uninstallRefusedWhenSimRunningRemovesNothing()
+{
+    FakeInstallerGateway gateway;
+    gateway.commbusPackages
+        << CommbusPackage{QStringLiteral("C:/2020/gsx-integrator-commbus"), QStringLiteral("FlightSimulator.exe"),
+                          QStringLiteral("MSFS 2020")}
+        << CommbusPackage{QStringLiteral("C:/2024/gsx-integrator-commbus"),
+                          QStringLiteral("FlightSimulator2024.exe"), QStringLiteral("MSFS 2024")};
+    gateway.autoStartConfigPaths << QStringLiteral("C:/a/EXE.xml");
+    gateway.runningProcesses.insert(QStringLiteral("FlightSimulator2024.exe"));
+
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
+
+    QVERIFY(!result.ok());
+    QCOMPARE(result.status, UninstallStatus::SimRunning);
+    QCOMPARE(result.detail, QStringLiteral("MSFS 2024"));
+    QVERIFY(result.leftovers.isEmpty());
+    QVERIFY(gateway.calls.isEmpty());
+}
+
+void InstallOrchestratorTest::uninstallIgnoresRunningSimWithoutTheModule()
+{
+    FakeInstallerGateway gateway;
+    gateway.commbusPackages << CommbusPackage{
+        QStringLiteral("C:/2020/gsx-integrator-commbus"), QStringLiteral("FlightSimulator.exe"),
+        QStringLiteral("MSFS 2020")
+    };
+    gateway.runningProcesses.insert(QStringLiteral("FlightSimulator2024.exe"));
+
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
+
+    QVERIFY(result.ok());
+    QVERIFY(gateway.calls.contains(QStringLiteral("removeDir:C:/2020/gsx-integrator-commbus")));
+}
+
+void InstallOrchestratorTest::uninstallReportsPackageThatCouldNotBeRemoved()
+{
+    FakeInstallerGateway gateway;
+    gateway.commbusPackages
+        << CommbusPackage{QStringLiteral("C:/2020/gsx-integrator-commbus"), QStringLiteral("FlightSimulator.exe"),
+                          QStringLiteral("MSFS 2020")}
+        << CommbusPackage{QStringLiteral("C:/2024/gsx-integrator-commbus"),
+                          QStringLiteral("FlightSimulator2024.exe"), QStringLiteral("MSFS 2024")};
+    gateway.undeletableDirs.insert(QStringLiteral("C:/2020/gsx-integrator-commbus"));
+
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
+
+    QVERIFY(!result.ok());
+    QCOMPARE(result.status, UninstallStatus::LeftoversRemain);
+    QCOMPARE(result.leftovers, QStringList{QStringLiteral("C:/2020/gsx-integrator-commbus")});
+    QVERIFY(gateway.calls.contains(QStringLiteral("removeDir:C:/2024/gsx-integrator-commbus")));
+    QVERIFY(!gateway.calls.contains(QStringLiteral("removeUninstallEntry")));
+    QVERIFY(!gateway.calls.contains(QStringLiteral("scheduleRemoval")));
+    QVERIFY(!gateway.calls.contains(
+        QStringLiteral("removeShortcut:%1").arg(static_cast<int>(ShortcutKind::Desktop))));
+}
+
+void InstallOrchestratorTest::uninstallReportsAutoStartEntryThatCouldNotBeRemoved()
+{
+    FakeInstallerGateway gateway;
+    gateway.autoStartConfigPaths << QStringLiteral("C:/a/EXE.xml");
+    gateway.autoStartRemoveOk = false;
+
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
+
+    QVERIFY(!result.ok());
+    QCOMPARE(result.status, UninstallStatus::LeftoversRemain);
+    QCOMPARE(result.leftovers, QStringList{QStringLiteral("C:/a/EXE.xml")});
+    QVERIFY(!gateway.calls.contains(QStringLiteral("removeUninstallEntry")));
+    QVERIFY(!gateway.calls.contains(QStringLiteral("scheduleRemoval")));
+}
+
+void InstallOrchestratorTest::uninstallReportsInstallDirThatCouldNotBeRemoved()
+{
+    FakeInstallerGateway gateway;
+    gateway.scheduleRemovalOk = false;
+
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
+
+    QVERIFY(!result.ok());
+    QCOMPARE(result.status, UninstallStatus::LeftoversRemain);
+    QCOMPARE(result.leftovers, QStringList{gateway.ClientInstallDir()});
+    QVERIFY(gateway.calls.contains(QStringLiteral("scheduleRemoval")));
+    QVERIFY(!gateway.calls.contains(QStringLiteral("removeUninstallEntry")));
+    QVERIFY(!gateway.calls.contains(
+        QStringLiteral("removeShortcut:%1").arg(static_cast<int>(ShortcutKind::Desktop))));
+    QVERIFY(!gateway.calls.contains(
+        QStringLiteral("removeShortcut:%1").arg(static_cast<int>(ShortcutKind::Setup))));
+}
+
+void InstallOrchestratorTest::uninstallRemovesShortcutsAndEntryOnlyAfterTheInstallDirIsGone()
+{
+    FakeInstallerGateway gateway;
+
+    const UninstallOutcome result = InstallOrchestrator(gateway).RunUninstall();
+
+    QVERIFY(result.ok());
+
+    const qsizetype schedule = gateway.calls.indexOf(QStringLiteral("scheduleRemoval"));
+    QVERIFY(schedule >= 0);
+    QVERIFY(schedule < gateway.calls.indexOf(QStringLiteral("removeUninstallEntry")));
+    QVERIFY(schedule < gateway.calls.indexOf(
+        QStringLiteral("removeShortcut:%1").arg(static_cast<int>(ShortcutKind::Setup))));
 }
 
 QTEST_GUILESS_MAIN(InstallOrchestratorTest)

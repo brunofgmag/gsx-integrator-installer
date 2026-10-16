@@ -21,7 +21,7 @@ namespace
         ReleaseInfo info;
         info.valid = true;
         info.version = version;
-        info.zipName = QStringLiteral("pkg-%1.zip").arg(version);
+        info.assetName = QStringLiteral("pkg-%1.zip").arg(version);
         return info;
     }
 
@@ -33,9 +33,9 @@ namespace
     }
 
     SimInstall MakeSim(const QString& id, const QString& community,
-                       const QString& process, const QString& exeXml, int generation)
+                       const QString& process, const QString& autoStartConfig, int generation)
     {
-        return {id, id, community, process, exeXml, generation};
+        return {id, id, community, process, autoStartConfig, generation};
     }
 
     class StubTranslator final : public QTranslator
@@ -60,7 +60,7 @@ private slots:
     static void readyBuildsInstallRequestForOutdatedClientAndSim();
     static void autoStart2020OnlyTargetsOnlyMatchingGeneration();
     static void autoStartAllSimsTargetsEveryGeneration();
-    static void autoStartDisableRemovesAllCandidateExeXml();
+    static void autoStartDisableRemovesAllCandidateConfigPaths();
     static void forceReinstallMakesUpToDateClientNeedInstall();
     static void onInstallFinishedReReadsInstalledVersions();
     static void setSimSelectedPersistsAndRestoresAcrossSessions();
@@ -68,13 +68,27 @@ private slots:
     static void shortcutTogglesPersistAndRestoreAcrossSessions();
     static void uninstallRunsAndEntersUninstalledState();
     static void uninstallBlockedWhileClientIsRunning();
+    static void uninstallConfirmationWaitsForTheAnswerWithoutCheckingReleases();
+    static void uninstallConfirmationRemovesOnConfirm();
+    static void uninstallConfirmationStaysOnScreenWhenSomethingRemains();
+    static void uninstallRefusedBySimulatorShowsErrorInsteadOfRemoved();
+    static void uninstallLeftoversAreListedAndScreenDoesNotSayRemoved();
+    static void uninstallErrorRetranslatesWhenLanguageChanges();
     static void setLanguagePersistsAndSignals();
     static void errorTextRetranslatesWhenLanguageChanges();
     static void installerUpdateAvailableWhenNewerReleaseExists();
     static void invalidInstallerReleaseStaysReadyWithoutError();
     static void selfUpdateStartsOnceWhileUpdating();
     static void selfUpdateRecoversAfterFailure();
+    static void selfUpdateFailureShowsTheReason();
     static void installBlockedWhileSelfUpdating();
+    static void selfUpdateOutsideAnAppImageSaysWhy();
+    static void selfUpdateInAnUnwritableFolderNamesTheFolder();
+    static void autoStartIsLockedWithANoticeWhenSystemdIsMissing();
+    static void autoStartStaysOpenWhenSystemdIsThere();
+    static void emptySimListSaysWhereItLooked();
+    static void foundSimsHideTheSearchNote();
+    static void menuShortcutLabelsNameThePlatformMenu();
 };
 
 void SetupViewModelTest::fetchFailureEntersErrorState()
@@ -146,7 +160,7 @@ void SetupViewModelTest::autoStart2020OnlyTargetsOnlyMatchingGeneration()
     };
     inspector.commbusVersions[QStringLiteral("C:/C20")] = QStringLiteral("0.2.0");
     inspector.commbusVersions[QStringLiteral("C:/C24")] = QStringLiteral("0.2.0");
-    inspector.candidateExeXml[2024] = {QStringLiteral("C:/exe24.xml")};
+    inspector.candidateAutoStartConfigPaths[2024] = {QStringLiteral("C:/exe24.xml")};
 
     SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
 
@@ -156,8 +170,8 @@ void SetupViewModelTest::autoStart2020OnlyTargetsOnlyMatchingGeneration()
     vm.SetAutoStartMode(SetupViewModel::kAutoStart2020Only);
     vm.install();
 
-    QCOMPARE(install.lastRequest.exeXmlAddTargets, QStringList{QStringLiteral("C:/exe20.xml")});
-    QCOMPARE(install.lastRequest.exeXmlRemoveTargets, QStringList{QStringLiteral("C:/exe24.xml")});
+    QCOMPARE(install.lastRequest.autoStartAddTargets, QStringList{QStringLiteral("C:/exe20.xml")});
+    QCOMPARE(install.lastRequest.autoStartRemoveTargets, QStringList{QStringLiteral("C:/exe24.xml")});
 }
 
 void SetupViewModelTest::autoStartAllSimsTargetsEveryGeneration()
@@ -188,11 +202,11 @@ void SetupViewModelTest::autoStartAllSimsTargetsEveryGeneration()
 
     const QStringList expectedAdds{QStringLiteral("C:/exe20.xml"), QStringLiteral("C:/exe24.xml")};
 
-    QCOMPARE(install.lastRequest.exeXmlAddTargets, expectedAdds);
-    QVERIFY(install.lastRequest.exeXmlRemoveTargets.isEmpty());
+    QCOMPARE(install.lastRequest.autoStartAddTargets, expectedAdds);
+    QVERIFY(install.lastRequest.autoStartRemoveTargets.isEmpty());
 }
 
-void SetupViewModelTest::autoStartDisableRemovesAllCandidateExeXml()
+void SetupViewModelTest::autoStartDisableRemovesAllCandidateConfigPaths()
 {
     FakeSettingsRepository settings;
     FakeReleaseProvider releases;
@@ -209,7 +223,7 @@ void SetupViewModelTest::autoStartDisableRemovesAllCandidateExeXml()
     };
     inspector.commbusVersions[QStringLiteral("C:/C20")] = QStringLiteral("0.2.0");
     inspector.commbusVersions[QStringLiteral("C:/C24")] = QStringLiteral("0.2.0");
-    inspector.candidateExeXml[0] = {QStringLiteral("C:/exe20.xml"), QStringLiteral("C:/exe24.xml")};
+    inspector.candidateAutoStartConfigPaths[0] = {QStringLiteral("C:/exe20.xml"), QStringLiteral("C:/exe24.xml")};
 
     SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
 
@@ -219,11 +233,11 @@ void SetupViewModelTest::autoStartDisableRemovesAllCandidateExeXml()
     vm.SetAutoStartMode(SetupViewModel::kAutoStartDisable);
     vm.install();
 
-    QVERIFY(install.lastRequest.exeXmlAddTargets.isEmpty());
+    QVERIFY(install.lastRequest.autoStartAddTargets.isEmpty());
 
     const QStringList expectedRemovals{QStringLiteral("C:/exe20.xml"), QStringLiteral("C:/exe24.xml")};
 
-    QCOMPARE(install.lastRequest.exeXmlRemoveTargets, expectedRemovals);
+    QCOMPARE(install.lastRequest.autoStartRemoveTargets, expectedRemovals);
 }
 
 void SetupViewModelTest::forceReinstallMakesUpToDateClientNeedInstall()
@@ -366,7 +380,7 @@ void SetupViewModelTest::shortcutTogglesPersistAndRestoreAcrossSessions()
     }
 
     QVERIFY(!settings.settings.desktopShortcut);
-    QVERIFY(settings.settings.clientStartMenuShortcut);
+    QVERIFY(settings.settings.clientMenuShortcut);
     QVERIFY(!settings.settings.setupShortcut);
 
     SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
@@ -374,7 +388,7 @@ void SetupViewModelTest::shortcutTogglesPersistAndRestoreAcrossSessions()
     vm.refresh();
 
     QVERIFY(!vm.GetDesktopShortcut());
-    QVERIFY(vm.GetClientStartMenuShortcut());
+    QVERIFY(vm.GetClientMenuShortcut());
     QVERIFY(!vm.GetSetupShortcut());
 }
 
@@ -409,6 +423,121 @@ void SetupViewModelTest::uninstallBlockedWhileClientIsRunning()
     QCOMPARE(install.uninstallCount, 0);
     QVERIFY(!vm.GetErrorText().isEmpty());
     QVERIFY(vm.GetState() != QStringLiteral("uninstalled"));
+}
+
+void SetupViewModelTest::uninstallConfirmationWaitsForTheAnswerWithoutCheckingReleases()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.BeginUninstallConfirmation();
+
+    QCOMPARE(vm.GetState(), QStringLiteral("confirmUninstall"));
+    QCOMPARE(releases.fetchCount, 0);
+    QCOMPARE(install.uninstallCount, 0);
+}
+
+void SetupViewModelTest::uninstallConfirmationRemovesOnConfirm()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.BeginUninstallConfirmation();
+    vm.uninstall();
+
+    QCOMPARE(install.uninstallCount, 1);
+    QCOMPARE(vm.GetState(), QStringLiteral("uninstalled"));
+}
+
+void SetupViewModelTest::uninstallConfirmationStaysOnScreenWhenSomethingRemains()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    install.uninstallOutcome = {UninstallStatus::SimRunning, QStringLiteral("MSFS 2024"), {}};
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.BeginUninstallConfirmation();
+    vm.uninstall();
+
+    QCOMPARE(vm.GetState(), QStringLiteral("confirmUninstall"));
+    QVERIFY(vm.GetErrorText().contains(QStringLiteral("MSFS 2024")));
+}
+
+void SetupViewModelTest::uninstallRefusedBySimulatorShowsErrorInsteadOfRemoved()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    install.uninstallOutcome = {UninstallStatus::SimRunning, QStringLiteral("MSFS 2024"), {}};
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.uninstall();
+
+    QCOMPARE(install.uninstallCount, 1);
+    QVERIFY(vm.GetState() != QStringLiteral("uninstalled"));
+    QVERIFY(vm.GetErrorText().contains(QStringLiteral("MSFS 2024")));
+    QVERIFY(vm.GetErrorText().contains(QStringLiteral("uninstalling")));
+}
+
+void SetupViewModelTest::uninstallLeftoversAreListedAndScreenDoesNotSayRemoved()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    install.uninstallOutcome = {
+        UninstallStatus::LeftoversRemain,
+        {},
+        {QStringLiteral("E:/Flight Simulator 2024/Community/gsx-integrator-commbus"), QStringLiteral("C:/a/EXE.xml")}
+    };
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    const QSignalSpy changed(&vm, &SetupViewModel::Changed);
+    vm.uninstall();
+
+    QVERIFY(vm.GetState() != QStringLiteral("uninstalled"));
+    QVERIFY(vm.GetErrorText().contains(QStringLiteral("E:/Flight Simulator 2024/Community/gsx-integrator-commbus")));
+    QVERIFY(vm.GetErrorText().contains(QStringLiteral("C:/a/EXE.xml")));
+    QVERIFY(vm.GetErrorText().contains(QStringLiteral("still installed")));
+    QVERIFY(!changed.isEmpty());
+}
+
+void SetupViewModelTest::uninstallErrorRetranslatesWhenLanguageChanges()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    install.uninstallOutcome = {UninstallStatus::SimRunning, QStringLiteral("MSFS 2024"), {}};
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.uninstall();
+
+    QVERIFY(!vm.GetErrorText().startsWith(QStringLiteral("[xx] ")));
+
+    StubTranslator stub;
+
+    QVERIFY(QCoreApplication::installTranslator(&stub));
+
+    const QString after = vm.GetErrorText();
+    QCoreApplication::removeTranslator(&stub);
+
+    QVERIFY(after.startsWith(QStringLiteral("[xx] ")));
 }
 
 void SetupViewModelTest::setLanguagePersistsAndSignals()
@@ -529,12 +658,39 @@ void SetupViewModelTest::selfUpdateRecoversAfterFailure()
     vm.selfUpdate();
     QCOMPARE(selfUpdate.startCount, 1);
 
-    vm.OnSelfUpdateFailed(SelfUpdateError::SwapFailed, QString());
+    vm.OnSelfUpdateFailed(SelfUpdateError::SwapFailed, QStringLiteral("/tmp/update.cmd"));
     QCOMPARE(vm.GetInstallerUpdateState(), QStringLiteral("error"));
     QVERIFY(!vm.GetInstallerUpdateError().isEmpty());
 
     vm.selfUpdate();
     QCOMPARE(selfUpdate.startCount, 2);
+}
+
+void SetupViewModelTest::selfUpdateFailureShowsTheReason()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    const SelfUpdateError kinds[] = {
+        SelfUpdateError::DownloadFailed,
+        SelfUpdateError::ChecksumMismatch,
+        SelfUpdateError::ExtractFailed,
+        SelfUpdateError::SwapFailed,
+        SelfUpdateError::RelaunchFailed,
+        SelfUpdateError::AppImageDirNotWritable,
+    };
+
+    for (const SelfUpdateError kind : kinds)
+    {
+        vm.OnSelfUpdateFailed(kind, QStringLiteral("zip: bad CRC in gsx.exe"));
+
+        QVERIFY2(vm.GetInstallerUpdateError().contains(QStringLiteral("zip: bad CRC in gsx.exe")),
+                 qPrintable(QString::number(static_cast<int>(kind))));
+    }
 }
 
 void SetupViewModelTest::installBlockedWhileSelfUpdating()
@@ -557,6 +713,117 @@ void SetupViewModelTest::installBlockedWhileSelfUpdating()
 
     vm.install();
     QCOMPARE(install.installCount, 0);
+}
+
+void SetupViewModelTest::selfUpdateOutsideAnAppImageSaysWhy()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.OnSelfUpdateFailed(SelfUpdateError::NotAnAppImage, QString());
+
+    QCOMPARE(vm.GetInstallerUpdateState(), QStringLiteral("error"));
+    QVERIFY(vm.GetInstallerUpdateError().contains(QStringLiteral("AppImage")));
+}
+
+void SetupViewModelTest::selfUpdateInAnUnwritableFolderNamesTheFolder()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.OnSelfUpdateFailed(SelfUpdateError::AppImageDirNotWritable, QStringLiteral("/opt/apps"));
+
+    QCOMPARE(vm.GetInstallerUpdateState(), QStringLiteral("error"));
+    QVERIFY(vm.GetInstallerUpdateError().contains(QStringLiteral("/opt/apps")));
+}
+
+void SetupViewModelTest::autoStartIsLockedWithANoticeWhenSystemdIsMissing()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    inspector.autoStartAvailable = false;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.refresh();
+    vm.SetAutoStartMode(SetupViewModel::kAutoStartDisable);
+
+    QVERIFY(!vm.GetAutoStartAvailable());
+    QVERIFY(vm.GetAutoStartNotice().contains(QStringLiteral("systemd")));
+    QCOMPARE(vm.GetAutoStartMode(), static_cast<int>(SetupViewModel::kAutoStartNoChange));
+}
+
+void SetupViewModelTest::autoStartStaysOpenWhenSystemdIsThere()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.refresh();
+    vm.SetAutoStartMode(SetupViewModel::kAutoStartDisable);
+
+    QVERIFY(vm.GetAutoStartAvailable());
+    QCOMPARE(vm.GetAutoStartMode(), static_cast<int>(SetupViewModel::kAutoStartDisable));
+}
+
+void SetupViewModelTest::emptySimListSaysWhereItLooked()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    inspector.searchLocations = {QStringLiteral("/home/a/.steam/steam/steamapps"), QStringLiteral("/mnt/games/steamapps")};
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.refresh();
+
+    QVERIFY(vm.GetSimSearchNote().contains(QStringLiteral("/home/a/.steam/steam/steamapps")));
+    QVERIFY(vm.GetSimSearchNote().contains(QStringLiteral("/mnt/games/steamapps")));
+}
+
+void SetupViewModelTest::foundSimsHideTheSearchNote()
+{
+    FakeSettingsRepository settings;
+    FakeReleaseProvider releases;
+    FakeSystemInspector inspector;
+    FakeInstallService install;
+    FakeSelfUpdateService selfUpdate;
+    inspector.searchLocations = {QStringLiteral("/home/a/.steam/steam/steamapps")};
+    inspector.sims = {
+        MakeSim(QStringLiteral("s24"), QStringLiteral("/c"), QStringLiteral("FlightSimulator2024.exe"),
+                QStringLiteral("/x"), 2024)
+    };
+    SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
+
+    vm.refresh();
+
+    QVERIFY(vm.GetSimSearchNote().isEmpty());
+}
+
+void SetupViewModelTest::menuShortcutLabelsNameThePlatformMenu()
+{
+#ifdef Q_OS_WIN
+    const QString expected = QStringLiteral("Start Menu");
+#else
+    const QString expected = QStringLiteral("applications menu");
+#endif
+
+    QVERIFY(SetupViewModel::GetClientMenuShortcutLabel().contains(expected));
+    QVERIFY(SetupViewModel::GetSetupMenuShortcutLabel().contains(expected));
 }
 
 QTEST_GUILESS_MAIN(SetupViewModelTest)

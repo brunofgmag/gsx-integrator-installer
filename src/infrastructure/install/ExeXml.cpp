@@ -34,6 +34,12 @@ namespace
             "</SimBase.Document>\n")));
     }
 
+    QString ExecutableName(const QString& exePath)
+    {
+        const qsizetype cut = qMax(exePath.lastIndexOf(u'/'), exePath.lastIndexOf(u'\\'));
+        return cut < 0 ? exePath : exePath.mid(cut + 1);
+    }
+
     bool Save(const QDomDocument& doc, const QString& path)
     {
         QFile file(path);
@@ -77,7 +83,7 @@ bool ExeXmlAddUpdate(const QString& exeXmlPath, const QString& exePath, const QS
         return false;
     }
 
-    const QString exeName = QFileInfo(exePath).fileName();
+    const QString exeName = ExecutableName(exePath);
     bool found = false;
     for (QDomElement addon = root.firstChildElement(kLaunchAddonTag); !addon.isNull();
          addon = addon.nextSiblingElement(kLaunchAddonTag))
