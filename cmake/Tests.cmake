@@ -211,18 +211,9 @@ find_program(GSXI_LUPDATE_EXECUTABLE
         NO_DEFAULT_PATH
         REQUIRED)
 
-if (WIN32)
-    add_test(NAME translations-up-to-date
-            COMMAND powershell -NoProfile -ExecutionPolicy Bypass
-            -File "${CMAKE_SOURCE_DIR}/tools/check-translations.ps1"
-            -Lupdate "${GSXI_LUPDATE_EXECUTABLE}"
-            -SourceDir "${CMAKE_SOURCE_DIR}/src"
-            -I18nDir "${CMAKE_SOURCE_DIR}/i18n")
-else ()
-    add_test(NAME translations-up-to-date
-            COMMAND "${CMAKE_COMMAND}"
-            -DLUPDATE=${GSXI_LUPDATE_EXECUTABLE}
-            -DSOURCE_DIR=${CMAKE_SOURCE_DIR}/src
-            -DI18N_DIR=${CMAKE_SOURCE_DIR}/i18n
-            -P "${CMAKE_SOURCE_DIR}/tools/check-translations.cmake")
-endif ()
+add_test(NAME translations-up-to-date
+        COMMAND "${CMAKE_COMMAND}"
+        -DLUPDATE=${GSXI_LUPDATE_EXECUTABLE}
+        -DSOURCE_DIR=${CMAKE_SOURCE_DIR}/src
+        -DI18N_DIR=${CMAKE_SOURCE_DIR}/i18n
+        -P "${CMAKE_SOURCE_DIR}/tools/check-translations.cmake")
