@@ -18,7 +18,7 @@ QString LinuxSystemInspector::InstalledClientVersion() const
 
 bool LinuxSystemInspector::IsClientRunning() const
 {
-    return IsAnyProcessRunning(QLatin1String(kProcRoot), ClientProcessNames());
+    return IsProgramRunning(QLatin1String(kProcRoot), ClientProcessNames());
 }
 
 QList<SimInstall> LinuxSystemInspector::DetectSims() const

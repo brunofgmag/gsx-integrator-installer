@@ -104,7 +104,7 @@ namespace
 
 bool LinuxInstallerGateway::IsClientRunning() const
 {
-    return IsAnyProcessRunning(QLatin1String(kProcRoot), ClientProcessNames());
+    return IsProgramRunning(QLatin1String(kProcRoot), ClientProcessNames());
 }
 
 bool LinuxInstallerGateway::IsProcessRunning(const QString& processName) const

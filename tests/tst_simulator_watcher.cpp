@@ -110,6 +110,7 @@ private slots:
     static void scriptStartsTheClientOncePerSimulatorRunAndStopsItWithTheSimulator();
     static void scriptDoesNotStartASecondClient();
     static void scriptRecognisesTheClientBehindAppRunByItsExecutableLink();
+    static void scriptStartsTheClientWhenAnotherProcessOnlyMentionsItsName();
     static void scriptDoesNotCountItsOwnProcessAsTheSimulator();
     static void scriptRefusesToRunWithoutSimulators();
 };
@@ -422,6 +423,18 @@ void SimulatorWatcherTest::scriptRecognisesTheClientBehindAppRunByItsExecutableL
     QTest::qWait(700);
 
     QCOMPARE(CountLines(run.log, QStringLiteral("started")), 0);
+}
+
+void SimulatorWatcherTest::scriptStartsTheClientWhenAnotherProcessOnlyMentionsItsName()
+{
+    ScriptRun run;
+    QVERIFY(run.Start(QStringLiteral("FlightSimulator2024.exe")));
+    QVERIFY(run.AddProcess(QStringLiteral("320"), Cmdline({"ninja", "gsx-integrator-client"})));
+    QVERIFY(run.AddProcess(QStringLiteral("321"), Cmdline({"/usr/bin/tail", "-f", "/x/gsx-integrator-client.AppImage"})));
+
+    QVERIFY(run.AddProcess(QStringLiteral("100"), Cmdline({"S:\\x\\FlightSimulator2024.exe"})));
+
+    QVERIFY(WaitFor([&] { return CountLines(run.log, QStringLiteral("started")) == 1; }));
 }
 
 void SimulatorWatcherTest::scriptDoesNotCountItsOwnProcessAsTheSimulator()

@@ -36,6 +36,9 @@ private slots:
     static void findsTheClientBehindAppRunByItsExecutableLink();
     static void executableLinkOfADeletedFileStillMatches();
     static void unrelatedExecutableLinkDoesNotMatch();
+    static void programScanIgnoresAnArgumentThatOnlyNamesTheClient();
+    static void programScanStillFindsTheClientByItsFirstArgument();
+    static void anyArgumentScanStillFindsTheSimulatorNamedOnlyAsAnArgument();
     static void emptyNameListMatchesNothing();
     static void missingProcRootMatchesNothing();
 };
@@ -111,9 +114,9 @@ void ProcessScanTest::findsTheAppImageClientByEitherName()
     QVERIFY(AddProcess(proc, QStringLiteral("11"), {"/tmp/.mount_gsx-itAbCd/usr/bin/gsx-integrator-client", "--tray"}));
     QVERIFY(AddProcess(proc, QStringLiteral("12"), {"/home/u/.local/share/gsx-integrator-client/gsx-integrator-client.AppImage"}));
 
-    QVERIFY(IsAnyProcessRunning(proc.path(), {QStringLiteral("gsx-integrator-client")}));
-    QVERIFY(IsAnyProcessRunning(proc.path(), {QStringLiteral("gsx-integrator-client.AppImage")}));
-    QVERIFY(!IsAnyProcessRunning(proc.path(), {QStringLiteral("gsx-integrator-installer")}));
+    QVERIFY(IsProgramRunning(proc.path(), {QStringLiteral("gsx-integrator-client")}));
+    QVERIFY(IsProgramRunning(proc.path(), {QStringLiteral("gsx-integrator-client.AppImage")}));
+    QVERIFY(!IsProgramRunning(proc.path(), {QStringLiteral("gsx-integrator-installer")}));
 }
 
 void ProcessScanTest::findsTheClientBehindAppRunByItsExecutableLink()
@@ -123,7 +126,7 @@ void ProcessScanTest::findsTheClientBehindAppRunByItsExecutableLink()
     QVERIFY(MakeTestSymlink(QStringLiteral("/tmp/.mount_gsx-iQwErT/usr/bin/gsx-integrator-client"),
                             proc.filePath(QStringLiteral("21/exe"))));
 
-    QVERIFY(IsAnyProcessRunning(proc.path(), {QStringLiteral("gsx-integrator-client")}));
+    QVERIFY(IsProgramRunning(proc.path(), {QStringLiteral("gsx-integrator-client")}));
 }
 
 void ProcessScanTest::executableLinkOfADeletedFileStillMatches()
@@ -133,7 +136,7 @@ void ProcessScanTest::executableLinkOfADeletedFileStillMatches()
     QVERIFY(MakeTestSymlink(QStringLiteral("/home/u/.local/share/gsx-integrator-client/gsx-integrator-client.AppImage (deleted)"),
                             proc.filePath(QStringLiteral("22/exe"))));
 
-    QVERIFY(IsAnyProcessRunning(proc.path(), {QStringLiteral("gsx-integrator-client.AppImage")}));
+    QVERIFY(IsProgramRunning(proc.path(), {QStringLiteral("gsx-integrator-client.AppImage")}));
 }
 
 void ProcessScanTest::unrelatedExecutableLinkDoesNotMatch()
@@ -142,7 +145,34 @@ void ProcessScanTest::unrelatedExecutableLinkDoesNotMatch()
     QVERIFY(AddProcess(proc, QStringLiteral("23"), {"/usr/bin/firefox"}));
     QVERIFY(MakeTestSymlink(QStringLiteral("/usr/lib/firefox/firefox"), proc.filePath(QStringLiteral("23/exe"))));
 
-    QVERIFY(!IsAnyProcessRunning(proc.path(), {QStringLiteral("gsx-integrator-client")}));
+    QVERIFY(!IsProgramRunning(proc.path(), {QStringLiteral("gsx-integrator-client")}));
+}
+
+void ProcessScanTest::programScanIgnoresAnArgumentThatOnlyNamesTheClient()
+{
+    const QTemporaryDir proc;
+    QVERIFY(AddProcess(proc, QStringLiteral("31"), {"ninja", "gsx-integrator-client"}));
+    QVERIFY(AddProcess(proc, QStringLiteral("32"), {"/usr/bin/tail", "-f", "/home/u/.local/share/gsx-integrator-client/gsx-integrator-client.AppImage"}));
+
+    QVERIFY(!IsProgramRunning(proc.path(), {QStringLiteral("gsx-integrator-client"),
+                                            QStringLiteral("gsx-integrator-client.AppImage")}));
+}
+
+void ProcessScanTest::programScanStillFindsTheClientByItsFirstArgument()
+{
+    const QTemporaryDir proc;
+    QVERIFY(AddProcess(proc, QStringLiteral("33"), {"/home/u/.local/share/gsx-integrator-client/gsx-integrator-client.AppImage", "--tray"}));
+
+    QVERIFY(IsProgramRunning(proc.path(), {QStringLiteral("gsx-integrator-client.AppImage")}));
+}
+
+void ProcessScanTest::anyArgumentScanStillFindsTheSimulatorNamedOnlyAsAnArgument()
+{
+    const QTemporaryDir proc;
+    QVERIFY(AddProcess(proc, QStringLiteral("34"), {"ACE: WinMain_Z", "S:\\g\\FlightSimulator2024.exe"}));
+
+    QVERIFY(IsAnyProcessRunning(proc.path(), {QStringLiteral("FlightSimulator2024.exe")}));
+    QVERIFY(!IsProgramRunning(proc.path(), {QStringLiteral("FlightSimulator2024.exe")}));
 }
 
 void ProcessScanTest::emptyNameListMatchesNothing()

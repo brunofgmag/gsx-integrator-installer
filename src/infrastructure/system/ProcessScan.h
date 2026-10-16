@@ -10,4 +10,6 @@ inline constexpr auto kProcRoot = "/proc";
 
 [[nodiscard]] bool IsAnyProcessRunning(const QString& procRoot, const QStringList& baseNames);
 
+[[nodiscard]] bool IsProgramRunning(const QString& procRoot, const QStringList& baseNames);
+
 #endif

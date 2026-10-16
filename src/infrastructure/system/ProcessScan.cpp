@@ -32,6 +32,19 @@ namespace
         return !target.isEmpty() && NameListContains(baseNames, ArgumentBaseName(target));
     }
 
+    bool ProgramNameMatches(const QString& cmdlinePath, const QStringList& baseNames)
+    {
+        QFile file(cmdlinePath);
+        if (!file.open(QIODevice::ReadOnly))
+        {
+            return false;
+        }
+
+        const QByteArray first = file.readAll().split('\0').value(0);
+
+        return !first.isEmpty() && NameListContains(baseNames, ArgumentBaseName(QString::fromUtf8(first)));
+    }
+
     bool CommandLineMatches(const QString& cmdlinePath, const QStringList& baseNames)
     {
         QFile file(cmdlinePath);
@@ -56,6 +69,34 @@ namespace
 
         return false;
     }
+
+    bool ScanProcesses(const QString& procRoot, const QStringList& baseNames, const bool anyArgument)
+    {
+        if (baseNames.isEmpty())
+        {
+            return false;
+        }
+
+        const QStringList entries = QDir(procRoot).entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+        for (const QString& entry : entries)
+        {
+            if (!IsPid(entry))
+            {
+                continue;
+            }
+
+            const QString pidDir = procRoot + u'/' + entry;
+            const QString cmdlinePath = pidDir + QStringLiteral("/cmdline");
+            const bool byCommandLine = anyArgument ? CommandLineMatches(cmdlinePath, baseNames)
+                                                   : ProgramNameMatches(cmdlinePath, baseNames);
+            if (byCommandLine || ExecutableMatches(pidDir + QStringLiteral("/exe"), baseNames))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
 
 QString ArgumentBaseName(const QString& argument)
@@ -72,26 +113,10 @@ QString ArgumentBaseName(const QString& argument)
 
 bool IsAnyProcessRunning(const QString& procRoot, const QStringList& baseNames)
 {
-    if (baseNames.isEmpty())
-    {
-        return false;
-    }
+    return ScanProcesses(procRoot, baseNames, true);
+}
 
-    const QStringList entries = QDir(procRoot).entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    for (const QString& entry : entries)
-    {
-        if (!IsPid(entry))
-        {
-            continue;
-        }
-
-        const QString pidDir = procRoot + u'/' + entry;
-        if (CommandLineMatches(pidDir + QStringLiteral("/cmdline"), baseNames)
-            || ExecutableMatches(pidDir + QStringLiteral("/exe"), baseNames))
-        {
-            return true;
-        }
-    }
-
-    return false;
+bool IsProgramRunning(const QString& procRoot, const QStringList& baseNames)
+{
+    return ScanProcesses(procRoot, baseNames, false);
 }
