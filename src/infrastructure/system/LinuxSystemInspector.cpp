@@ -41,17 +41,17 @@ bool LinuxSystemInspector::DesktopShortcutExists() const
     return QFile::exists(DesktopShortcutPath());
 }
 
-bool LinuxSystemInspector::ClientStartMenuShortcutExists() const
+bool LinuxSystemInspector::ClientMenuShortcutExists() const
 {
     return QFile::exists(StartMenuShortcutPath());
 }
 
-bool LinuxSystemInspector::SetupStartMenuShortcutExists() const
+bool LinuxSystemInspector::SetupMenuShortcutExists() const
 {
     return QFile::exists(SetupStartMenuShortcutPath());
 }
 
-QStringList LinuxSystemInspector::CandidateExeXmlPaths(const int generation) const
+QStringList LinuxSystemInspector::CandidateAutoStartConfigPaths(const int generation) const
 {
     return ::CandidateExeXmlPaths(generation);
 }

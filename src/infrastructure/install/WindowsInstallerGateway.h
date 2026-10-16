@@ -9,27 +9,27 @@ public:
     [[nodiscard]] bool IsClientRunning() const override;
     [[nodiscard]] bool IsProcessRunning(const QString& processName) const override;
     [[nodiscard]] bool IsInstallerInsideInstallDir() const override;
-    [[nodiscard]] bool ClientExeExists() const override;
+    [[nodiscard]] bool ClientExecutableExists() const override;
     [[nodiscard]] QString ClientInstallDir() const override;
 
     [[nodiscard]] DownloadResult DownloadRelease(
         const ReleaseInfo& release, const std::function<void(double)>& onFraction) override;
     [[nodiscard]] bool PrepareCleanInstallDir() override;
-    [[nodiscard]] InstallOutcome ExtractClientPackage(const QString& zipPath) override;
-    [[nodiscard]] InstallOutcome ExtractCommbusPackage(const QString& zipPath,
+    [[nodiscard]] InstallOutcome InstallClientPackage(const QString& packagePath) override;
+    [[nodiscard]] InstallOutcome ExtractCommbusPackage(const QString& packagePath,
                                                        const QString& communityPath,
                                                        const QString& version) override;
     void InstallUninstallerCopy() override;
     void WriteUninstallEntry(const QString& version) override;
     void ApplyShortcut(ShortcutKind kind, bool wanted) override;
-    [[nodiscard]] bool ExeXmlAdd(const QString& exeXmlPath) override;
-    [[nodiscard]] bool ExeXmlRemove(const QString& exeXmlPath) override;
+    [[nodiscard]] bool AddAutoStartEntry(const QString& autoStartConfigPath) override;
+    [[nodiscard]] bool RemoveAutoStartEntry(const QString& autoStartConfigPath) override;
 
     [[nodiscard]] QList<CommbusPackage> DetectedCommbusPackages() const override;
-    [[nodiscard]] QStringList AllExeXmlPaths() const override;
+    [[nodiscard]] QStringList AllAutoStartConfigPaths() const override;
     [[nodiscard]] bool RemoveDirRecursively(const QString& dir) override;
     void RemoveShortcut(ShortcutKind kind) override;
-    void RemoveUninstallRegistryEntry() override;
+    void RemoveUninstallEntry() override;
     void ScheduleInstallDirRemoval() override;
 };
 

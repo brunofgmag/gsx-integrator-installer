@@ -30,14 +30,14 @@ void SettingsRepositoryTest::roundTripsAllFields()
 
     QCOMPARE(defaults.language, QStringLiteral("system"));
     QVERIFY(defaults.desktopShortcut);
-    QVERIFY(defaults.clientStartMenuShortcut);
+    QVERIFY(defaults.clientMenuShortcut);
     QVERIFY(defaults.setupShortcut);
     QVERIFY(defaults.disabledCommbusSims.isEmpty());
 
     InstallerSettings settings;
     settings.language = QStringLiteral("pt_BR");
     settings.desktopShortcut = false;
-    settings.clientStartMenuShortcut = false;
+    settings.clientMenuShortcut = false;
     settings.setupShortcut = true;
     settings.disabledCommbusSims = {QStringLiteral("fs2020-steam")};
     repository.Save(settings);
@@ -46,7 +46,7 @@ void SettingsRepositoryTest::roundTripsAllFields()
 
     QCOMPARE(loaded.language, QStringLiteral("pt_BR"));
     QVERIFY(!loaded.desktopShortcut);
-    QVERIFY(!loaded.clientStartMenuShortcut);
+    QVERIFY(!loaded.clientMenuShortcut);
     QVERIFY(loaded.setupShortcut);
     QCOMPARE(loaded.disabledCommbusSims, QStringList{QStringLiteral("fs2020-steam")});
 }

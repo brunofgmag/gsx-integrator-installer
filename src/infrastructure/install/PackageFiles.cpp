@@ -15,9 +15,9 @@ DownloadResult DownloadVerifiedRelease(const ReleaseInfo& release,
 {
     const QString tempDir = QDir::tempPath() + QStringLiteral("/gsx-integrator-installer");
     (void)QDir().mkpath(tempDir);
-    const QString zipPath = tempDir + u'/' + release.zipName;
+    const QString packagePath = tempDir + u'/' + release.assetName;
 
-    QString error = DownloadFile(release.zipUrl, zipPath,
+    QString error = DownloadFile(release.assetUrl, packagePath,
                                  [&](const qint64 received, const qint64 total)
                                  {
                                      if (onFraction && total > 0)
@@ -30,19 +30,19 @@ DownloadResult DownloadVerifiedRelease(const ReleaseInfo& release,
         return {InstallStatus::DownloadFailed, error, {}};
     }
 
-    const QString shaPath = zipPath + QStringLiteral(".sha256");
+    const QString shaPath = packagePath + QStringLiteral(".sha256");
     error = DownloadFile(release.shaUrl, shaPath);
     if (!error.isEmpty())
     {
         return {InstallStatus::DownloadFailed, error, {}};
     }
 
-    if (!Sha256Matches(zipPath, shaPath))
+    if (!Sha256Matches(packagePath, shaPath))
     {
-        return {InstallStatus::ChecksumMismatch, release.zipName, {}};
+        return {InstallStatus::ChecksumMismatch, release.assetName, {}};
     }
 
-    return {InstallStatus::Success, {}, zipPath};
+    return {InstallStatus::Success, {}, packagePath};
 }
 
 InstallOutcome ExtractZipTo(const QString& zipPath, const QString& destDir)

@@ -39,27 +39,27 @@ ReleaseInfo ParseLatestRelease(const QByteArray& json, const QString& assetPrefi
     }
     info.version = version.toString();
 
-    const QString zipName = assetPrefix + u'-' + info.version + extension;
+    const QString assetName = assetPrefix + u'-' + info.version + extension;
     for (const QJsonValue value : release.value(QStringLiteral("assets")).toArray())
     {
         const QJsonObject asset = value.toObject();
         const QString name = asset.value(QStringLiteral("name")).toString();
         const QUrl url(asset.value(QStringLiteral("browser_download_url")).toString());
-        if (name == zipName)
+        if (name == assetName)
         {
-            info.zipName = name;
-            info.zipUrl = url;
+            info.assetName = name;
+            info.assetUrl = url;
         }
-        else if (name == zipName + QStringLiteral(".sha256"))
+        else if (name == assetName + QStringLiteral(".sha256"))
         {
             info.shaUrl = url;
         }
     }
 
-    if (info.zipUrl.isEmpty() || info.shaUrl.isEmpty())
+    if (info.assetUrl.isEmpty() || info.shaUrl.isEmpty())
     {
         info.errorKind = ReleaseError::MissingAsset;
-        info.error = QStringLiteral("Release %1 is missing the %2 asset.").arg(info.version, zipName);
+        info.error = QStringLiteral("Release %1 is missing the %2 asset.").arg(info.version, assetName);
 
         return info;
     }

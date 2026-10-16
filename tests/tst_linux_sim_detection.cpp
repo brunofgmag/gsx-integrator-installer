@@ -56,8 +56,8 @@ void LinuxSimDetectionTest::exeXmlKeepsTheLowercaseNameThePrefixUses()
 
     const QList<SimInstall> sims = DetectSims(tree.SteamappsRoots());
 
-    QCOMPARE(sims[1].exeXmlPath, tree.ExeXml2024());
-    QVERIFY(sims[1].exeXmlPath.endsWith(QStringLiteral("/exe.xml")));
+    QCOMPARE(sims[1].autoStartConfigPath, tree.ExeXml2024());
+    QVERIFY(sims[1].autoStartConfigPath.endsWith(QStringLiteral("/exe.xml")));
 }
 
 void LinuxSimDetectionTest::exeXmlNamedEvenWhenTheFileDoesNotExistYet()
@@ -67,8 +67,8 @@ void LinuxSimDetectionTest::exeXmlNamedEvenWhenTheFileDoesNotExistYet()
 
     const QList<SimInstall> sims = DetectSims(tree.SteamappsRoots());
 
-    QCOMPARE(sims[0].exeXmlPath, tree.ExeXml2020());
-    QVERIFY(!QFile::exists(sims[0].exeXmlPath));
+    QCOMPARE(sims[0].autoStartConfigPath, tree.ExeXml2020());
+    QVERIFY(!QFile::exists(sims[0].autoStartConfigPath));
 }
 
 void LinuxSimDetectionTest::simWithoutUserCfgIsSkipped()

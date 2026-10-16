@@ -74,7 +74,7 @@ namespace
     {
         switch (kind)
         {
-        case ShortcutKind::ClientStartMenu:
+        case ShortcutKind::ClientMenu:
             return {StartMenuShortcutPath(), ClientExePath(), QStringLiteral("GSX Integrator")};
         case ShortcutKind::Desktop:
             return {DesktopShortcutPath(), ClientExePath(), QStringLiteral("GSX Integrator")};
@@ -111,7 +111,7 @@ bool WindowsInstallerGateway::IsInstallerInsideInstallDir() const
     return selfDir.startsWith(ClientInstallDir(), Qt::CaseInsensitive);
 }
 
-bool WindowsInstallerGateway::ClientExeExists() const
+bool WindowsInstallerGateway::ClientExecutableExists() const
 {
     return QFile::exists(ClientExePath());
 }
@@ -135,12 +135,12 @@ bool WindowsInstallerGateway::PrepareCleanInstallDir()
     return RemoveDirContentsExcept(installDir, QFileInfo(MaintenanceDir()).fileName());
 }
 
-InstallOutcome WindowsInstallerGateway::ExtractClientPackage(const QString& zipPath)
+InstallOutcome WindowsInstallerGateway::InstallClientPackage(const QString& packagePath)
 {
-    return ExtractZipTo(zipPath, QFileInfo(ClientInstallDir()).absolutePath());
+    return ExtractZipTo(packagePath, QFileInfo(ClientInstallDir()).absolutePath());
 }
 
-InstallOutcome WindowsInstallerGateway::ExtractCommbusPackage(const QString& zipPath,
+InstallOutcome WindowsInstallerGateway::ExtractCommbusPackage(const QString& packagePath,
                                                               const QString& communityPath,
                                                               const QString& version)
 {
@@ -150,7 +150,7 @@ InstallOutcome WindowsInstallerGateway::ExtractCommbusPackage(const QString& zip
         return {InstallStatus::CommbusReplaceFailed, communityPath};
     }
 
-    if (const InstallOutcome extract = ExtractZipTo(zipPath, communityPath); !extract.ok())
+    if (const InstallOutcome extract = ExtractZipTo(packagePath, communityPath); !extract.ok())
     {
         return extract;
     }
@@ -202,14 +202,14 @@ void WindowsInstallerGateway::ApplyShortcut(const ShortcutKind kind, const bool 
     }
 }
 
-bool WindowsInstallerGateway::ExeXmlAdd(const QString& exeXmlPath)
+bool WindowsInstallerGateway::AddAutoStartEntry(const QString& autoStartConfigPath)
 {
-    return ExeXmlAddUpdate(exeXmlPath, ClientExePath(), QLatin1String(kAppDisplayName));
+    return ExeXmlAddUpdate(autoStartConfigPath, ClientExePath(), QLatin1String(kAppDisplayName));
 }
 
-bool WindowsInstallerGateway::ExeXmlRemove(const QString& exeXmlPath)
+bool WindowsInstallerGateway::RemoveAutoStartEntry(const QString& autoStartConfigPath)
 {
-    return ::ExeXmlRemove(exeXmlPath, QLatin1String(kClientExeName));
+    return ::ExeXmlRemove(autoStartConfigPath, QLatin1String(kClientExeName));
 }
 
 QList<CommbusPackage> WindowsInstallerGateway::DetectedCommbusPackages() const
@@ -217,7 +217,7 @@ QList<CommbusPackage> WindowsInstallerGateway::DetectedCommbusPackages() const
     return FindInstalledCommbusPackages();
 }
 
-QStringList WindowsInstallerGateway::AllExeXmlPaths() const
+QStringList WindowsInstallerGateway::AllAutoStartConfigPaths() const
 {
     return CandidateExeXmlPaths();
 }
@@ -232,7 +232,7 @@ void WindowsInstallerGateway::RemoveShortcut(const ShortcutKind kind)
     QFile::remove(DescribeShortcut(kind).lnkPath);
 }
 
-void WindowsInstallerGateway::RemoveUninstallRegistryEntry()
+void WindowsInstallerGateway::RemoveUninstallEntry()
 {
     RegDeleteTreeW(HKEY_CURRENT_USER,
                    L"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\gsx-integrator-client");

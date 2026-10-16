@@ -14,11 +14,11 @@ enum class InstallStatus
     ExtractFailed,
     ExtractUnsafeEntry,
     ExtractWriteFailed,
-    ClientExeMissing,
+    ClientExecutableMissing,
     SimRunning,
     CommbusReplaceFailed,
     AutoStartClientMissing,
-    ExeXmlUpdateFailed,
+    AutoStartUpdateFailed,
 };
 
 struct InstallOutcome

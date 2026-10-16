@@ -18,11 +18,11 @@ public:
     InstallStatus extractClientStatus = InstallStatus::Success;
     InstallStatus extractCommbusStatus = InstallStatus::Success;
     bool prepareOk = true;
-    bool exeXmlAddOk = true;
-    bool exeXmlRemoveOk = true;
+    bool autoStartAddOk = true;
+    bool autoStartRemoveOk = true;
     QList<CommbusPackage> commbusPackages;
     QSet<QString> undeletableDirs;
-    QStringList exeXmlPaths;
+    QStringList autoStartConfigPaths;
 
     mutable QStringList calls;
 
@@ -34,7 +34,7 @@ public:
     }
 
     bool IsInstallerInsideInstallDir() const override { return installerInsideInstallDir; }
-    bool ClientExeExists() const override { return clientExe; }
+    bool ClientExecutableExists() const override { return clientExe; }
     QString ClientInstallDir() const override { return QStringLiteral("C:/install"); }
 
     DownloadResult DownloadRelease(const ReleaseInfo&,
@@ -58,7 +58,7 @@ public:
         return prepareOk;
     }
 
-    InstallOutcome ExtractClientPackage(const QString&) override
+    InstallOutcome InstallClientPackage(const QString&) override
     {
         calls << QStringLiteral("extractClient");
         return {extractClientStatus, {}};
@@ -76,7 +76,7 @@ public:
 
     void WriteUninstallEntry(const QString& version) override
     {
-        calls << QStringLiteral("registry:%1").arg(version);
+        calls << QStringLiteral("uninstallEntry:%1").arg(version);
     }
 
     void ApplyShortcut(ShortcutKind kind, const bool wanted) override
@@ -84,20 +84,20 @@ public:
         calls << QStringLiteral("shortcut:%1:%2").arg(static_cast<int>(kind)).arg(wanted ? 1 : 0);
     }
 
-    bool ExeXmlAdd(const QString& path) override
+    bool AddAutoStartEntry(const QString& path) override
     {
-        calls << QStringLiteral("exeXmlAdd:%1").arg(path);
-        return exeXmlAddOk;
+        calls << QStringLiteral("autoStartAdd:%1").arg(path);
+        return autoStartAddOk;
     }
 
-    bool ExeXmlRemove(const QString& path) override
+    bool RemoveAutoStartEntry(const QString& path) override
     {
-        calls << QStringLiteral("exeXmlRemove:%1").arg(path);
-        return exeXmlRemoveOk;
+        calls << QStringLiteral("autoStartRemove:%1").arg(path);
+        return autoStartRemoveOk;
     }
 
     QList<CommbusPackage> DetectedCommbusPackages() const override { return commbusPackages; }
-    QStringList AllExeXmlPaths() const override { return exeXmlPaths; }
+    QStringList AllAutoStartConfigPaths() const override { return autoStartConfigPaths; }
 
     bool RemoveDirRecursively(const QString& dir) override
     {
@@ -110,7 +110,7 @@ public:
         calls << QStringLiteral("removeShortcut:%1").arg(static_cast<int>(kind));
     }
 
-    void RemoveUninstallRegistryEntry() override { calls << QStringLiteral("removeRegistry"); }
+    void RemoveUninstallEntry() override { calls << QStringLiteral("removeUninstallEntry"); }
     void ScheduleInstallDirRemoval() override { calls << QStringLiteral("scheduleRemoval"); }
 };
 

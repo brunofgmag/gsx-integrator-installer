@@ -13,8 +13,8 @@ public:
     QList<SimInstall> sims;
     QHash<QString, QString> commbusVersions;
     QHash<QString, bool> running;
-    bool desktop = false, clientStartMenu = false, setupStartMenu = false;
-    QHash<int, QStringList> candidateExeXml;
+    bool desktop = false, clientMenu = false, setupMenu = false;
+    QHash<int, QStringList> candidateAutoStartConfigPaths;
     bool autoStartAvailable = true;
     QStringList searchLocations;
 
@@ -29,12 +29,12 @@ public:
 
     [[nodiscard]] bool IsSimRunning(const QString& process) const override { return running.value(process, false); }
     [[nodiscard]] bool DesktopShortcutExists() const override { return desktop; }
-    [[nodiscard]] bool ClientStartMenuShortcutExists() const override { return clientStartMenu; }
-    [[nodiscard]] bool SetupStartMenuShortcutExists() const override { return setupStartMenu; }
+    [[nodiscard]] bool ClientMenuShortcutExists() const override { return clientMenu; }
+    [[nodiscard]] bool SetupMenuShortcutExists() const override { return setupMenu; }
 
-    [[nodiscard]] QStringList CandidateExeXmlPaths(const int generation) const override
+    [[nodiscard]] QStringList CandidateAutoStartConfigPaths(const int generation) const override
     {
-        return candidateExeXml.value(generation);
+        return candidateAutoStartConfigPaths.value(generation);
     }
 
     [[nodiscard]] bool AutoStartAvailable() const override { return autoStartAvailable; }

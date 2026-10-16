@@ -39,15 +39,15 @@ void AppImageUpdateWorker::Run(const ReleaseInfo& release)
     (void)QDir().mkpath(stagingDir);
     const auto cleanup = qScopeGuard([&stagingDir] { QDir(stagingDir).removeRecursively(); });
 
-    const QString shaPath = stagingDir + u'/' + release.zipName + QStringLiteral(".sha256");
+    const QString shaPath = stagingDir + u'/' + release.assetName + QStringLiteral(".sha256");
     if (const QString error = DownloadFile(release.shaUrl, shaPath); !error.isEmpty())
     {
         emit failed(SelfUpdateError::DownloadFailed, error);
         return;
     }
 
-    const QString partPath = target.dir + QStringLiteral("/.") + release.zipName + QStringLiteral(".part");
-    const QString downloadError = DownloadFile(release.zipUrl, partPath,
+    const QString partPath = target.dir + QStringLiteral("/.") + release.assetName + QStringLiteral(".part");
+    const QString downloadError = DownloadFile(release.assetUrl, partPath,
                                                [this](const qint64 received, const qint64 total)
                                                {
                                                    emit progress(total > 0
@@ -64,7 +64,7 @@ void AppImageUpdateWorker::Run(const ReleaseInfo& release)
     if (!Sha256Matches(partPath, shaPath))
     {
         QFile::remove(partPath);
-        emit failed(SelfUpdateError::ChecksumMismatch, release.zipName);
+        emit failed(SelfUpdateError::ChecksumMismatch, release.assetName);
         return;
     }
 

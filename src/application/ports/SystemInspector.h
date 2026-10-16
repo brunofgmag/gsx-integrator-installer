@@ -19,10 +19,10 @@ public:
     [[nodiscard]] virtual bool IsSimRunning(const QString& processName) const = 0;
 
     [[nodiscard]] virtual bool DesktopShortcutExists() const = 0;
-    [[nodiscard]] virtual bool ClientStartMenuShortcutExists() const = 0;
-    [[nodiscard]] virtual bool SetupStartMenuShortcutExists() const = 0;
+    [[nodiscard]] virtual bool ClientMenuShortcutExists() const = 0;
+    [[nodiscard]] virtual bool SetupMenuShortcutExists() const = 0;
 
-    [[nodiscard]] virtual QStringList CandidateExeXmlPaths(int generation) const = 0;
+    [[nodiscard]] virtual QStringList CandidateAutoStartConfigPaths(int generation) const = 0;
     [[nodiscard]] virtual bool AutoStartAvailable() const = 0;
     [[nodiscard]] virtual QStringList SimSearchLocations() const = 0;
 };

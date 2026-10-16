@@ -29,8 +29,8 @@ void ReleaseParserTest::findsBothAssets()
 
     QVERIFY(info.valid);
     QCOMPARE(info.version, QStringLiteral("0.2.0"));
-    QCOMPARE(info.zipName, QStringLiteral("gsx-integrator-client-0.2.0.zip"));
-    QCOMPARE(info.zipUrl, QUrl(QStringLiteral("https://example.com/client.zip")));
+    QCOMPARE(info.assetName, QStringLiteral("gsx-integrator-client-0.2.0.zip"));
+    QCOMPARE(info.assetUrl, QUrl(QStringLiteral("https://example.com/client.zip")));
     QCOMPARE(info.shaUrl, QUrl(QStringLiteral("https://example.com/client.zip.sha256")));
 }
 
@@ -45,8 +45,8 @@ void ReleaseParserTest::parsesInstallerExeRelease()
 
     QVERIFY(info.valid);
     QCOMPARE(info.version, QStringLiteral("1.0.0"));
-    QCOMPARE(info.zipName, QStringLiteral("gsx-integrator-installer-1.0.0.exe"));
-    QCOMPARE(info.zipUrl, QUrl(QStringLiteral("https://example.com/installer.exe")));
+    QCOMPARE(info.assetName, QStringLiteral("gsx-integrator-installer-1.0.0.exe"));
+    QCOMPARE(info.assetUrl, QUrl(QStringLiteral("https://example.com/installer.exe")));
     QCOMPARE(info.shaUrl, QUrl(QStringLiteral("https://example.com/installer.exe.sha256")));
 }
 
@@ -66,7 +66,7 @@ void ReleaseParserTest::windowsZipIsWhatTheDefaultPicksWhenTheReleaseAlsoHasAnAp
     const ReleaseInfo info = ParseLatestRelease(kMixedRelease, QStringLiteral("gsx-integrator-client"));
 
     QVERIFY(info.valid);
-    QCOMPARE(info.zipName, QStringLiteral("gsx-integrator-client-1.50.0.zip"));
+    QCOMPARE(info.assetName, QStringLiteral("gsx-integrator-client-1.50.0.zip"));
     QCOMPARE(info.shaUrl, QUrl(QStringLiteral("https://example.com/c.zip.sha256")));
 }
 
@@ -81,8 +81,8 @@ void ReleaseParserTest::appImagePairIsWhatTheProgramExtensionPicksOnLinux()
                                                 ProgramAssetExtension());
 
     QVERIFY(info.valid);
-    QCOMPARE(info.zipName, QStringLiteral("gsx-integrator-client-1.50.0-x86_64.AppImage"));
-    QCOMPARE(info.zipUrl, QUrl(QStringLiteral("https://example.com/c.AppImage")));
+    QCOMPARE(info.assetName, QStringLiteral("gsx-integrator-client-1.50.0-x86_64.AppImage"));
+    QCOMPARE(info.assetUrl, QUrl(QStringLiteral("https://example.com/c.AppImage")));
     QCOMPARE(info.shaUrl, QUrl(QStringLiteral("https://example.com/c.AppImage.sha256")));
 #endif
 }

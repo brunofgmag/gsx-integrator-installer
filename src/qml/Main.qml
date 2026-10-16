@@ -209,8 +209,8 @@ Window {
             }
             CheckRow {
                 label: root.controller.clientMenuShortcutLabel
-                checked: root.controller.clientStartMenuShortcut
-                onToggled: checked => root.controller.clientStartMenuShortcut = checked
+                checked: root.controller.clientMenuShortcut
+                onToggled: checked => root.controller.clientMenuShortcut = checked
             }
             CheckRow {
                 label: root.controller.setupMenuShortcutLabel

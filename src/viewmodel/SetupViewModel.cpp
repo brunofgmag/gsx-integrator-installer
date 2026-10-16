@@ -50,7 +50,7 @@ void SetupViewModel::refresh()
 
     const InstallerSettings saved = settings_->Load();
     desktopShortcut_ = saved.desktopShortcut;
-    clientStartMenuShortcut_ = saved.clientStartMenuShortcut;
+    clientMenuShortcut_ = saved.clientMenuShortcut;
     setupShortcut_ = saved.setupShortcut;
 
     autoStartAvailable_ = inspector_->AutoStartAvailable();
@@ -222,8 +222,8 @@ bool SetupViewModel::HasShortcutChanges() const
     }
 
     return desktopShortcut_ != inspector_->DesktopShortcutExists()
-        || clientStartMenuShortcut_ != inspector_->ClientStartMenuShortcutExists()
-        || setupShortcut_ != inspector_->SetupStartMenuShortcutExists();
+        || clientMenuShortcut_ != inspector_->ClientMenuShortcutExists()
+        || setupShortcut_ != inspector_->SetupMenuShortcutExists();
 }
 
 bool SetupViewModel::HasAnythingToDo() const
@@ -355,7 +355,7 @@ void SetupViewModel::PersistShortcutSettings() const
 {
     InstallerSettings settings = settings_->Load();
     settings.desktopShortcut = desktopShortcut_;
-    settings.clientStartMenuShortcut = clientStartMenuShortcut_;
+    settings.clientMenuShortcut = clientMenuShortcut_;
     settings.setupShortcut = setupShortcut_;
     settings_->Save(settings);
 }
@@ -369,9 +369,9 @@ void SetupViewModel::SetDesktopShortcut(const bool value)
     emit Changed();
 }
 
-void SetupViewModel::SetClientStartMenuShortcut(const bool value)
+void SetupViewModel::SetClientMenuShortcut(const bool value)
 {
-    clientStartMenuShortcut_ = value;
+    clientMenuShortcut_ = value;
 
     PersistShortcutSettings();
 
@@ -445,7 +445,7 @@ void SetupViewModel::install()
     request.clientRelease = clientRelease_;
     request.commbusRelease = commbusRelease_;
     request.desktopShortcut = desktopShortcut_;
-    request.clientStartMenuShortcut = clientStartMenuShortcut_;
+    request.clientMenuShortcut = clientMenuShortcut_;
     request.setupShortcut = setupShortcut_;
     for (const SimEntry& entry : sims_)
     {
@@ -462,7 +462,7 @@ void SetupViewModel::install()
         {
             if (wantedGeneration == 0 || entry.sim.generation == wantedGeneration)
             {
-                request.exeXmlAddTargets.append(entry.sim.exeXmlPath);
+                request.autoStartAddTargets.append(entry.sim.autoStartConfigPath);
             }
         }
     };
@@ -470,18 +470,18 @@ void SetupViewModel::install()
     switch (autoStartMode_)
     {
     case kAutoStartDisable:
-        request.exeXmlRemoveTargets = inspector_->CandidateExeXmlPaths(0);
+        request.autoStartRemoveTargets = inspector_->CandidateAutoStartConfigPaths(0);
         break;
     case kAutoStartAllSims:
         addAutoStartTargets(0);
         break;
     case kAutoStart2020Only:
         addAutoStartTargets(2020);
-        request.exeXmlRemoveTargets = inspector_->CandidateExeXmlPaths(2024);
+        request.autoStartRemoveTargets = inspector_->CandidateAutoStartConfigPaths(2024);
         break;
     case kAutoStart2024Only:
         addAutoStartTargets(2024);
-        request.exeXmlRemoveTargets = inspector_->CandidateExeXmlPaths(2020);
+        request.autoStartRemoveTargets = inspector_->CandidateAutoStartConfigPaths(2020);
         break;
     default:
         break;
@@ -562,7 +562,7 @@ QString SetupViewModel::InstallErrorText(const InstallOutcome& outcome)
             .arg(outcome.detail);
     case InstallStatus::ExtractWriteFailed:
         return tr("Couldn't write %1.").arg(outcome.detail);
-    case InstallStatus::ClientExeMissing:
+    case InstallStatus::ClientExecutableMissing:
         return tr("The download doesn't contain the GSX Integrator app.");
     case InstallStatus::SimRunning:
         return tr("%1 is open. Close it to install CommBus.").arg(outcome.detail);
@@ -572,7 +572,7 @@ QString SetupViewModel::InstallErrorText(const InstallOutcome& outcome)
     case InstallStatus::AutoStartClientMissing:
         return tr("The GSX Integrator app isn't installed, "
             "so auto-start couldn't be set up.");
-    case InstallStatus::ExeXmlUpdateFailed:
+    case InstallStatus::AutoStartUpdateFailed:
         return tr("Couldn't update %1.").arg(outcome.detail);
     case InstallStatus::Success:
         break;

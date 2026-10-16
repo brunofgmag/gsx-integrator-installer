@@ -33,7 +33,7 @@ namespace
         const QString name = QLatin1String(kAppDisplayName);
         switch (kind)
         {
-        case ShortcutKind::ClientStartMenu:
+        case ShortcutKind::ClientMenu:
             return {StartMenuShortcutPath(), ClientExePath(), name, name, false};
         case ShortcutKind::Desktop:
             return {DesktopShortcutPath(), ClientExePath(), name, name, true};
@@ -128,7 +128,7 @@ bool LinuxInstallerGateway::IsInstallerInsideInstallDir() const
     return selfDir == installDir || selfDir.startsWith(installDir + u'/');
 }
 
-bool LinuxInstallerGateway::ClientExeExists() const
+bool LinuxInstallerGateway::ClientExecutableExists() const
 {
     return QFile::exists(ClientExePath());
 }
@@ -160,9 +160,9 @@ bool LinuxInstallerGateway::PrepareCleanInstallDir()
     return true;
 }
 
-InstallOutcome LinuxInstallerGateway::ExtractClientPackage(const QString& zipPath)
+InstallOutcome LinuxInstallerGateway::InstallClientPackage(const QString& packagePath)
 {
-    if (!CopyExecutable(zipPath, ClientExePath()))
+    if (!CopyExecutable(packagePath, ClientExePath()))
     {
         return {InstallStatus::ExtractWriteFailed, ClientExePath()};
     }
@@ -170,7 +170,7 @@ InstallOutcome LinuxInstallerGateway::ExtractClientPackage(const QString& zipPat
     return {};
 }
 
-InstallOutcome LinuxInstallerGateway::ExtractCommbusPackage(const QString& zipPath,
+InstallOutcome LinuxInstallerGateway::ExtractCommbusPackage(const QString& packagePath,
                                                             const QString& communityPath,
                                                             const QString& version)
 {
@@ -180,7 +180,7 @@ InstallOutcome LinuxInstallerGateway::ExtractCommbusPackage(const QString& zipPa
         return {InstallStatus::CommbusReplaceFailed, communityPath};
     }
 
-    if (const InstallOutcome extract = ExtractZipTo(zipPath, communityPath); !extract.ok())
+    if (const InstallOutcome extract = ExtractZipTo(packagePath, communityPath); !extract.ok())
     {
         return extract;
     }
@@ -227,15 +227,15 @@ void LinuxInstallerGateway::ApplyShortcut(const ShortcutKind kind, const bool wa
     }
 }
 
-bool LinuxInstallerGateway::ExeXmlAdd(const QString& exeXmlPath)
+bool LinuxInstallerGateway::AddAutoStartEntry(const QString& autoStartConfigPath)
 {
-    const QString processName = SimProcessNameForExeXml(exeXmlPath, SteamappsDirsOfCurrentUser());
+    const QString processName = SimProcessNameForExeXml(autoStartConfigPath, SteamappsDirsOfCurrentUser());
     return !processName.isEmpty() && Watcher().Add(processName);
 }
 
-bool LinuxInstallerGateway::ExeXmlRemove(const QString& exeXmlPath)
+bool LinuxInstallerGateway::RemoveAutoStartEntry(const QString& autoStartConfigPath)
 {
-    const QString processName = SimProcessNameForExeXml(exeXmlPath, SteamappsDirsOfCurrentUser());
+    const QString processName = SimProcessNameForExeXml(autoStartConfigPath, SteamappsDirsOfCurrentUser());
     return processName.isEmpty() || Watcher().Remove(processName);
 }
 
@@ -244,7 +244,7 @@ QList<CommbusPackage> LinuxInstallerGateway::DetectedCommbusPackages() const
     return FindInstalledCommbusPackages();
 }
 
-QStringList LinuxInstallerGateway::AllExeXmlPaths() const
+QStringList LinuxInstallerGateway::AllAutoStartConfigPaths() const
 {
     return CandidateExeXmlPaths();
 }
@@ -259,7 +259,7 @@ void LinuxInstallerGateway::RemoveShortcut(const ShortcutKind kind)
     QFile::remove(DescribeShortcut(kind).desktopPath);
 }
 
-void LinuxInstallerGateway::RemoveUninstallRegistryEntry()
+void LinuxInstallerGateway::RemoveUninstallEntry()
 {
     QFile::remove(InstallMetadataPath());
 }

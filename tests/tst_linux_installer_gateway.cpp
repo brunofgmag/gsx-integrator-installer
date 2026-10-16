@@ -182,10 +182,10 @@ void LinuxInstallerGatewayTest::clientAppImageIsPlacedExecutable()
     LinuxInstallerGateway gateway;
 
     QVERIFY(gateway.PrepareCleanInstallDir());
-    const InstallOutcome outcome = gateway.ExtractClientPackage(box.Source(QStringLiteral("gsx-integrator-client-1.2.3-x86_64.AppImage"), "app-bytes"));
+    const InstallOutcome outcome = gateway.InstallClientPackage(box.Source(QStringLiteral("gsx-integrator-client-1.2.3-x86_64.AppImage"), "app-bytes"));
 
     QVERIFY(outcome.ok());
-    QVERIFY(gateway.ClientExeExists());
+    QVERIFY(gateway.ClientExecutableExists());
     QVERIFY(QFileInfo(ClientExePath()).isExecutable());
     QCOMPARE(ReadTestFile(ClientExePath()), QByteArray("app-bytes"));
     QVERIFY(!QFile::exists(ClientExePath() + QStringLiteral(".part")));
@@ -213,7 +213,7 @@ void LinuxInstallerGatewayTest::clientVersionComesFromInstallIni()
     const Sandbox box;
     LinuxInstallerGateway gateway;
     QVERIFY(gateway.PrepareCleanInstallDir());
-    QVERIFY(gateway.ExtractClientPackage(box.Source(QStringLiteral("c.AppImage"))).ok());
+    QVERIFY(gateway.InstallClientPackage(box.Source(QStringLiteral("c.AppImage"))).ok());
 
     gateway.WriteUninstallEntry(QStringLiteral("1.43.1"));
 
@@ -386,14 +386,14 @@ void LinuxInstallerGatewayTest::clientShortcutPointsAtTheAppImageWithQuotedExec(
     const Sandbox box;
     QVERIFY(WriteTestFile(ClientExePath(), "app"));
 
-    LinuxInstallerGateway().ApplyShortcut(ShortcutKind::ClientStartMenu, true);
+    LinuxInstallerGateway().ApplyShortcut(ShortcutKind::ClientMenu, true);
 
     const QString desktop = QString::fromUtf8(ReadTestFile(StartMenuShortcutPath()));
     QCOMPARE(StartMenuShortcutPath(), box.dataHome + QStringLiteral("/applications/gsx-integrator-client.desktop"));
     QVERIFY(desktop.contains(QStringLiteral("\nName=GSX Integrator\n")));
     QVERIFY(desktop.contains(QStringLiteral("\nExec=\"") + ClientExePath() + QStringLiteral("\"\n")));
     QVERIFY(ClientExePath().contains(u' '));
-    QVERIFY(LinuxSystemInspector().ClientStartMenuShortcutExists());
+    QVERIFY(LinuxSystemInspector().ClientMenuShortcutExists());
 }
 
 void LinuxInstallerGatewayTest::setupShortcutPointsAtTheMaintenanceCopy()
@@ -407,7 +407,7 @@ void LinuxInstallerGatewayTest::setupShortcutPointsAtTheMaintenanceCopy()
     QCOMPARE(SetupStartMenuShortcutPath(), box.dataHome + QStringLiteral("/applications/gsx-integrator-installer.desktop"));
     QVERIFY(desktop.contains(QStringLiteral("\nName=GSX Integrator Installer\n")));
     QVERIFY(desktop.contains(QStringLiteral("\nExec=\"") + MaintenanceInstallerPath() + QStringLiteral("\"\n")));
-    QVERIFY(LinuxSystemInspector().SetupStartMenuShortcutExists());
+    QVERIFY(LinuxSystemInspector().SetupMenuShortcutExists());
 }
 
 void LinuxInstallerGatewayTest::desktopShortcutIsExecutableAndInTheDesktopFolder()
@@ -426,7 +426,7 @@ void LinuxInstallerGatewayTest::shortcutIsNotCreatedForAMissingTarget()
 {
     const Sandbox box;
 
-    LinuxInstallerGateway().ApplyShortcut(ShortcutKind::ClientStartMenu, true);
+    LinuxInstallerGateway().ApplyShortcut(ShortcutKind::ClientMenu, true);
 
     QVERIFY(!QFile::exists(StartMenuShortcutPath()));
 }
@@ -436,10 +436,10 @@ void LinuxInstallerGatewayTest::unwantedShortcutIsRemoved()
     const Sandbox box;
     QVERIFY(WriteTestFile(ClientExePath(), "app"));
     LinuxInstallerGateway gateway;
-    gateway.ApplyShortcut(ShortcutKind::ClientStartMenu, true);
+    gateway.ApplyShortcut(ShortcutKind::ClientMenu, true);
     QVERIFY(QFile::exists(StartMenuShortcutPath()));
 
-    gateway.ApplyShortcut(ShortcutKind::ClientStartMenu, false);
+    gateway.ApplyShortcut(ShortcutKind::ClientMenu, false);
 
     QVERIFY(!QFile::exists(StartMenuShortcutPath()));
 }
@@ -451,7 +451,7 @@ void LinuxInstallerGatewayTest::autoStartWritesTheWatcherForTheSimulatorOfThatEx
     const Sandbox box;
     qputenv("HOME", tree.Home().toUtf8());
 
-    QVERIFY(LinuxInstallerGateway().ExeXmlAdd(tree.ExeXml2024()));
+    QVERIFY(LinuxInstallerGateway().AddAutoStartEntry(tree.ExeXml2024()));
 
     const QString unit = QString::fromUtf8(ReadTestFile(box.configHome + QStringLiteral("/systemd/user/gsx-integrator-client.service")));
     QVERIFY(unit.contains(QStringLiteral("GSXI_SIMULATORS=FlightSimulator2024.exe\"")));
@@ -468,9 +468,9 @@ void LinuxInstallerGatewayTest::autoStartRemoveDropsTheWatcher()
     const Sandbox box;
     qputenv("HOME", tree.Home().toUtf8());
     LinuxInstallerGateway gateway;
-    QVERIFY(gateway.ExeXmlAdd(tree.ExeXml2024()));
+    QVERIFY(gateway.AddAutoStartEntry(tree.ExeXml2024()));
 
-    QVERIFY(gateway.ExeXmlRemove(tree.ExeXml2024()));
+    QVERIFY(gateway.RemoveAutoStartEntry(tree.ExeXml2024()));
 
     QVERIFY(!QFile::exists(box.configHome + QStringLiteral("/systemd/user/gsx-integrator-client.service")));
     QVERIFY(!QFile::exists(WatcherScriptPath()));
@@ -484,7 +484,7 @@ void LinuxInstallerGatewayTest::autoStartForAnUnknownExeXmlFails()
     const Sandbox box;
     qputenv("HOME", tree.Home().toUtf8());
 
-    QVERIFY(!LinuxInstallerGateway().ExeXmlAdd(QStringLiteral("/elsewhere/EXE.xml")));
+    QVERIFY(!LinuxInstallerGateway().AddAutoStartEntry(QStringLiteral("/elsewhere/EXE.xml")));
     QVERIFY(!QFile::exists(WatcherScriptPath()));
 }
 
@@ -492,7 +492,7 @@ void LinuxInstallerGatewayTest::autoStartRemoveForAnUnknownExeXmlIsHarmless()
 {
     const Sandbox box;
 
-    QVERIFY(LinuxInstallerGateway().ExeXmlRemove(QStringLiteral("/elsewhere/EXE.xml")));
+    QVERIFY(LinuxInstallerGateway().RemoveAutoStartEntry(QStringLiteral("/elsewhere/EXE.xml")));
     QVERIFY(SystemctlLog(box.dir.path()).isEmpty());
 }
 
@@ -530,10 +530,10 @@ void LinuxInstallerGatewayTest::uninstallRemovesEverythingTheInstallLeftAndSpare
 
     LinuxInstallerGateway gateway;
     QVERIFY(gateway.PrepareCleanInstallDir());
-    QVERIFY(gateway.ExtractClientPackage(box.Source(QStringLiteral("c.AppImage"))).ok());
+    QVERIFY(gateway.InstallClientPackage(box.Source(QStringLiteral("c.AppImage"))).ok());
     gateway.WriteUninstallEntry(QStringLiteral("1.0.0"));
     QVERIFY(WriteTestFile(MaintenanceInstallerPath(), "installer"));
-    gateway.ApplyShortcut(ShortcutKind::ClientStartMenu, true);
+    gateway.ApplyShortcut(ShortcutKind::ClientMenu, true);
     gateway.ApplyShortcut(ShortcutKind::Setup, true);
     gateway.ApplyShortcut(ShortcutKind::Desktop, true);
 
@@ -542,7 +542,7 @@ void LinuxInstallerGatewayTest::uninstallRemovesEverythingTheInstallLeftAndSpare
     const QString store = box.dir.filePath(QStringLiteral("aerosoft/gsx-integrator-commbus"));
     QVERIFY(WriteTestFile(store + QStringLiteral("/keep.txt"), "keep"));
     QVERIFY(MakeTestSymlink(store, tree.Community2020() + QStringLiteral("/gsx-integrator-commbus")));
-    QVERIFY(gateway.ExeXmlAdd(tree.ExeXml2024()));
+    QVERIFY(gateway.AddAutoStartEntry(tree.ExeXml2024()));
 
     const UninstallOutcome outcome = InstallOrchestrator(gateway).RunUninstall();
 

@@ -21,7 +21,7 @@ namespace
         ReleaseInfo info;
         info.valid = true;
         info.version = version;
-        info.zipName = QStringLiteral("pkg-%1.zip").arg(version);
+        info.assetName = QStringLiteral("pkg-%1.zip").arg(version);
         return info;
     }
 
@@ -33,9 +33,9 @@ namespace
     }
 
     SimInstall MakeSim(const QString& id, const QString& community,
-                       const QString& process, const QString& exeXml, int generation)
+                       const QString& process, const QString& autoStartConfig, int generation)
     {
-        return {id, id, community, process, exeXml, generation};
+        return {id, id, community, process, autoStartConfig, generation};
     }
 
     class StubTranslator final : public QTranslator
@@ -60,7 +60,7 @@ private slots:
     static void readyBuildsInstallRequestForOutdatedClientAndSim();
     static void autoStart2020OnlyTargetsOnlyMatchingGeneration();
     static void autoStartAllSimsTargetsEveryGeneration();
-    static void autoStartDisableRemovesAllCandidateExeXml();
+    static void autoStartDisableRemovesAllCandidateConfigPaths();
     static void forceReinstallMakesUpToDateClientNeedInstall();
     static void onInstallFinishedReReadsInstalledVersions();
     static void setSimSelectedPersistsAndRestoresAcrossSessions();
@@ -156,7 +156,7 @@ void SetupViewModelTest::autoStart2020OnlyTargetsOnlyMatchingGeneration()
     };
     inspector.commbusVersions[QStringLiteral("C:/C20")] = QStringLiteral("0.2.0");
     inspector.commbusVersions[QStringLiteral("C:/C24")] = QStringLiteral("0.2.0");
-    inspector.candidateExeXml[2024] = {QStringLiteral("C:/exe24.xml")};
+    inspector.candidateAutoStartConfigPaths[2024] = {QStringLiteral("C:/exe24.xml")};
 
     SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
 
@@ -166,8 +166,8 @@ void SetupViewModelTest::autoStart2020OnlyTargetsOnlyMatchingGeneration()
     vm.SetAutoStartMode(SetupViewModel::kAutoStart2020Only);
     vm.install();
 
-    QCOMPARE(install.lastRequest.exeXmlAddTargets, QStringList{QStringLiteral("C:/exe20.xml")});
-    QCOMPARE(install.lastRequest.exeXmlRemoveTargets, QStringList{QStringLiteral("C:/exe24.xml")});
+    QCOMPARE(install.lastRequest.autoStartAddTargets, QStringList{QStringLiteral("C:/exe20.xml")});
+    QCOMPARE(install.lastRequest.autoStartRemoveTargets, QStringList{QStringLiteral("C:/exe24.xml")});
 }
 
 void SetupViewModelTest::autoStartAllSimsTargetsEveryGeneration()
@@ -198,11 +198,11 @@ void SetupViewModelTest::autoStartAllSimsTargetsEveryGeneration()
 
     const QStringList expectedAdds{QStringLiteral("C:/exe20.xml"), QStringLiteral("C:/exe24.xml")};
 
-    QCOMPARE(install.lastRequest.exeXmlAddTargets, expectedAdds);
-    QVERIFY(install.lastRequest.exeXmlRemoveTargets.isEmpty());
+    QCOMPARE(install.lastRequest.autoStartAddTargets, expectedAdds);
+    QVERIFY(install.lastRequest.autoStartRemoveTargets.isEmpty());
 }
 
-void SetupViewModelTest::autoStartDisableRemovesAllCandidateExeXml()
+void SetupViewModelTest::autoStartDisableRemovesAllCandidateConfigPaths()
 {
     FakeSettingsRepository settings;
     FakeReleaseProvider releases;
@@ -219,7 +219,7 @@ void SetupViewModelTest::autoStartDisableRemovesAllCandidateExeXml()
     };
     inspector.commbusVersions[QStringLiteral("C:/C20")] = QStringLiteral("0.2.0");
     inspector.commbusVersions[QStringLiteral("C:/C24")] = QStringLiteral("0.2.0");
-    inspector.candidateExeXml[0] = {QStringLiteral("C:/exe20.xml"), QStringLiteral("C:/exe24.xml")};
+    inspector.candidateAutoStartConfigPaths[0] = {QStringLiteral("C:/exe20.xml"), QStringLiteral("C:/exe24.xml")};
 
     SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
 
@@ -229,11 +229,11 @@ void SetupViewModelTest::autoStartDisableRemovesAllCandidateExeXml()
     vm.SetAutoStartMode(SetupViewModel::kAutoStartDisable);
     vm.install();
 
-    QVERIFY(install.lastRequest.exeXmlAddTargets.isEmpty());
+    QVERIFY(install.lastRequest.autoStartAddTargets.isEmpty());
 
     const QStringList expectedRemovals{QStringLiteral("C:/exe20.xml"), QStringLiteral("C:/exe24.xml")};
 
-    QCOMPARE(install.lastRequest.exeXmlRemoveTargets, expectedRemovals);
+    QCOMPARE(install.lastRequest.autoStartRemoveTargets, expectedRemovals);
 }
 
 void SetupViewModelTest::forceReinstallMakesUpToDateClientNeedInstall()
@@ -376,7 +376,7 @@ void SetupViewModelTest::shortcutTogglesPersistAndRestoreAcrossSessions()
     }
 
     QVERIFY(!settings.settings.desktopShortcut);
-    QVERIFY(settings.settings.clientStartMenuShortcut);
+    QVERIFY(settings.settings.clientMenuShortcut);
     QVERIFY(!settings.settings.setupShortcut);
 
     SetupViewModel vm(&settings, &releases, &inspector, &install, &selfUpdate);
@@ -384,7 +384,7 @@ void SetupViewModelTest::shortcutTogglesPersistAndRestoreAcrossSessions()
     vm.refresh();
 
     QVERIFY(!vm.GetDesktopShortcut());
-    QVERIFY(vm.GetClientStartMenuShortcut());
+    QVERIFY(vm.GetClientMenuShortcut());
     QVERIFY(!vm.GetSetupShortcut());
 }
 

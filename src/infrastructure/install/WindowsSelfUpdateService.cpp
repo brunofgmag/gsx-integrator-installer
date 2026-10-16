@@ -21,9 +21,9 @@ void SelfUpdateWorker::Run(const ReleaseInfo& release)
     QDir(stagingDir).removeRecursively();
     (void)QDir().mkpath(stagingDir);
 
-    const QString zipPath = stagingDir + u'/' + release.zipName;
+    const QString zipPath = stagingDir + u'/' + release.assetName;
 
-    const QString downloadError = DownloadFile(release.zipUrl, zipPath,
+    const QString downloadError = DownloadFile(release.assetUrl, zipPath,
                                                [this](const qint64 received, const qint64 total)
                                                {
                                                    emit progress(total > 0
@@ -48,7 +48,7 @@ void SelfUpdateWorker::Run(const ReleaseInfo& release)
     if (!Sha256Matches(zipPath, shaPath))
     {
         QDir(stagingDir).removeRecursively();
-        emit failed(SelfUpdateError::ChecksumMismatch, release.zipName);
+        emit failed(SelfUpdateError::ChecksumMismatch, release.assetName);
         return;
     }
 

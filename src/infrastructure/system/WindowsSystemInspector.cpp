@@ -35,17 +35,17 @@ bool WindowsSystemInspector::DesktopShortcutExists() const
     return QFile::exists(DesktopShortcutPath());
 }
 
-bool WindowsSystemInspector::ClientStartMenuShortcutExists() const
+bool WindowsSystemInspector::ClientMenuShortcutExists() const
 {
     return QFile::exists(StartMenuShortcutPath());
 }
 
-bool WindowsSystemInspector::SetupStartMenuShortcutExists() const
+bool WindowsSystemInspector::SetupMenuShortcutExists() const
 {
     return QFile::exists(SetupStartMenuShortcutPath());
 }
 
-QStringList WindowsSystemInspector::CandidateExeXmlPaths(const int generation) const
+QStringList WindowsSystemInspector::CandidateAutoStartConfigPaths(const int generation) const
 {
     return ::CandidateExeXmlPaths(generation);
 }
