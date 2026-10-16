@@ -21,4 +21,5 @@ jobs:
     uses: brunofgmag/gsx-integrator-ci/.github/workflows/merge-validator.yml@main
     with:
       allow-forks: true
+      linux-preset: linux-release
     secrets: inherit
