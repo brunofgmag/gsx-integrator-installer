@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.1](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.5.0...v0.5.1) (2026-10-17)
+
+
+* keep the simulator watcher alive when a process exits mid-read ([#48](https://github.com/brunofgmag/gsx-integrator-installer/issues/48)) ([cf66760](https://github.com/brunofgmag/gsx-integrator-installer/commit/cf66760d1f8000a42e50127a657a501c6142fe49))
+
+
+### Bug Fixes
+
+* keep the simulator watcher alive when a process exits mid-read ([c597d75](https://github.com/brunofgmag/gsx-integrator-installer/commit/c597d75315b01441cd0ddcef9b1ba447adbe3d2d)) ([cf66760](https://github.com/brunofgmag/gsx-integrator-installer/commit/cf66760d1f8000a42e50127a657a501c6142fe49))
+
 ## [0.5.0](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.4.0...v0.5.0) (2026-10-16)
 
 
