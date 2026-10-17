@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.2](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.5.1...v0.5.2) (2026-10-17)
+
+
+* restart the simulator watcher when its script changes ([#51](https://github.com/brunofgmag/gsx-integrator-installer/issues/51)) ([9f5876a](https://github.com/brunofgmag/gsx-integrator-installer/commit/9f5876afa8003a966cd16bb17f775de147af1582))
+
+
+### Bug Fixes
+
+* restart the simulator watcher when its script changes ([42e0e62](https://github.com/brunofgmag/gsx-integrator-installer/commit/42e0e6245fb0c563fe5cdef903bf48f3050dfb8b)) ([9f5876a](https://github.com/brunofgmag/gsx-integrator-installer/commit/9f5876afa8003a966cd16bb17f775de147af1582))
+
 ## [0.5.1](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.5.0...v0.5.1) (2026-10-17)
 
 
