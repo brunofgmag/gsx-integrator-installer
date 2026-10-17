@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.3](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.5.2...v0.5.3) (2026-10-17)
+
+
+* scan the process list with one grep per watcher poll ([#54](https://github.com/brunofgmag/gsx-integrator-installer/issues/54)) ([2cc8c04](https://github.com/brunofgmag/gsx-integrator-installer/commit/2cc8c046f6fd4e992d5be10948e17a959ad0fcaa))
+
+
+### Performance Improvements
+
+* scan the process list with one grep per watcher poll ([7caa245](https://github.com/brunofgmag/gsx-integrator-installer/commit/7caa2457790ccddc61ca5effa4096039d0d261fe)) ([2cc8c04](https://github.com/brunofgmag/gsx-integrator-installer/commit/2cc8c046f6fd4e992d5be10948e17a959ad0fcaa))
+
 ## [0.5.2](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.5.1...v0.5.2) (2026-10-17)
 
 
