@@ -169,6 +169,7 @@ private slots:
     static void enableWritesExecutableScriptAndUnitThenEnablesNow();
     static void enableTwiceWithTheSameSetRestartsNothing();
     static void addingASecondSimulatorRestartsTheService();
+    static void aChangedScriptRestartsTheService();
     static void removingOneSimulatorKeepsTheOther();
     static void removingTheLastSimulatorDisablesAndDeletesBothFiles();
     static void removingAnUnwatchedSimulatorTouchesNothing();
@@ -184,6 +185,7 @@ private slots:
     static void scriptRefusesToRunWithoutSimulators();
     static void scriptKeepsWatchingWhenAProcessDiesWhileItsCommandLineIsRead();
     static void theFakeClientDiesWithItsRun();
+    static void scriptLogsWhatItSeesAndWhatItDoes();
 };
 
 void SimulatorWatcherTest::unitTextIsExactlyWhatTheClientMustAlsoWrite()
@@ -300,6 +302,19 @@ void SimulatorWatcherTest::addingASecondSimulatorRestartsTheService()
     QVERIFY(SystemctlLog(box.dir.path()).contains(QStringLiteral("--user restart gsx-integrator-client.service")));
 }
 
+void SimulatorWatcherTest::aChangedScriptRestartsTheService()
+{
+    const Sandbox box;
+    QVERIFY(box.Watcher().Add(QStringLiteral("FlightSimulator2024.exe")));
+    QVERIFY(WriteTestFile(box.script, "#!/usr/bin/env bash\necho an older watcher\n"));
+
+    QVERIFY(box.Watcher().Add(QStringLiteral("FlightSimulator2024.exe")));
+
+    QCOMPARE(QString::fromUtf8(ReadTestFile(box.script)),
+             BuildWatcherFiles(box.script, {QStringLiteral("FlightSimulator2024.exe")}).script);
+    QVERIFY(SystemctlLog(box.dir.path()).contains(QStringLiteral("--user restart gsx-integrator-client.service")));
+}
+
 void SimulatorWatcherTest::removingOneSimulatorKeepsTheOther()
 {
     const Sandbox box;
@@ -390,6 +405,13 @@ namespace
         QString log = dir.filePath(QStringLiteral("client.log"));
         QString clientPid = dir.filePath(QStringLiteral("client.pid"));
         QProcess process;
+        QByteArray output;
+
+        bool Printed(const QByteArray& line)
+        {
+            output += process.readAllStandardOutput();
+            return output.contains(line);
+        }
 
         bool Start(const QString& simulators)
         {
@@ -578,6 +600,19 @@ void SimulatorWatcherTest::theFakeClientDiesWithItsRun()
     }
 
     QVERIFY(WaitFor([&] { return !IsAlive(clientPid); }));
+}
+
+void SimulatorWatcherTest::scriptLogsWhatItSeesAndWhatItDoes()
+{
+    ScriptRun run;
+    QVERIFY(run.Start(QStringLiteral("FlightSimulator2024.exe")));
+    QVERIFY(WaitFor([&] { return run.Printed("Watching for FlightSimulator2024.exe\n"); }));
+
+    QVERIFY(run.AddProcess(QStringLiteral("100"), Cmdline({"S:\\x\\FlightSimulator2024.exe"})));
+    QVERIFY(WaitFor([&] { return run.Printed("Simulator started, started the client as pid "); }));
+
+    QVERIFY(run.RemoveProcess(QStringLiteral("100")));
+    QVERIFY(WaitFor([&] { return run.Printed("Simulator closed, stopped the client at pid "); }));
 }
 
 QTEST_GUILESS_MAIN(SimulatorWatcherTest)
