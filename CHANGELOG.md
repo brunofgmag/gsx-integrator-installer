@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.4](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.5.3...v0.5.4) (2026-10-18)
+
+
+* give the client the session display when the watcher started first ([#57](https://github.com/brunofgmag/gsx-integrator-installer/issues/57)) ([da4d6a5](https://github.com/brunofgmag/gsx-integrator-installer/commit/da4d6a5ff15f1e686337365bd9cd12adeefd2859))
+
+
+### Bug Fixes
+
+* give the client the session display when the watcher started first ([7fe319c](https://github.com/brunofgmag/gsx-integrator-installer/commit/7fe319ccb6ea2e01b6fe147376b228683e52143c)) ([da4d6a5](https://github.com/brunofgmag/gsx-integrator-installer/commit/da4d6a5ff15f1e686337365bd9cd12adeefd2859))
+
 ## [0.5.3](https://github.com/brunofgmag/gsx-integrator-installer/compare/v0.5.2...v0.5.3) (2026-10-17)
 
 
